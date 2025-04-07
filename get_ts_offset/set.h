@@ -1,0 +1,8 @@
+//#define DEBUGALIGNMENT
+//#define DEBUGSORT
+
+#define ALIGNMENTWINDOW 1000 //1000ns
+#define CUTGE 100
+#define CUTSI 100
+
+

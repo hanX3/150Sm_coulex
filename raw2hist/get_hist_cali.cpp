@@ -5,7 +5,7 @@ void get_hist_cali(TString filename, int run)
   TTree *tr;
   fi = TFile::Open(filename.Data());
   if(fi->IsZombie()){
-    cout << "cannot open the file " << filename << std::endl;
+    cout << "can not open the file " << filename << std::endl;
     return;
   }
 
@@ -27,7 +27,6 @@ void get_hist_cali(TString filename, int run)
 
   std::ifstream fi_cali;
   fi_cali.open("../pars/cali.txt");
-  // fi_cali.open(TString::Format("../cali/cali_%04d.txt", run).Data());
   if(!fi_cali){
     std::cout << "can not open cali.txt" << std::endl;
     return ;
@@ -57,11 +56,51 @@ void get_hist_cali(TString filename, int run)
 
   std::cout << "print cali data" << std::endl;
 
-  std::map<int, std::vector<double>>::iterator it = map_cali_data.begin();
-  for(it=map_cali_data.begin();it!=map_cali_data.end();it++){
-    std::cout << it->first << " => " << it->second[0] << " " << it->second[1] << " " << it->second[2] << " " << it->second[3] << '\n';
+  std::map<int, std::vector<double>>::iterator it_cali = map_cali_data.begin();
+  for(;it_cali!=map_cali_data.end();it_cali++){
+    std::cout << it_cali->first << " => " << it_cali->second[0] << " " << it_cali->second[1] << " " << it_cali->second[2] << " " << it_cali->second[3] << '\n';
   }
 
+  // k par
+  std::map<int, double> map_k_data;
+  std::cout << "read k data" << std::endl;
+
+  std::ifstream fi_k;
+  fi_k.open(TString::Format("../pars/run_k/k_%04d.txt", run).Data());
+  if(!fi_k){
+    std::cout << "can not open k data" << std::endl;
+    for(int i=2;i<=5;i++){
+      for(int j=0;j<16;j++){
+        map_k_data.insert(std::pair<int, double>(100*i+j, 1.));
+      }
+    }
+  }else{
+    std::string line;
+    std::getline(fi_k, line);
+
+    double k;
+    int key = 0;
+
+    while(1){
+      fi_k >> cid >> sid >> ch >> k;
+      if(!fi_k.good()) break;
+
+      key = 10000*cid+100*sid+ch; // ch from 0 to 15
+
+      map_k_data.insert(std::pair<int, double>(key, k));
+    }
+
+    fi_k.close();
+  }
+
+  std::cout << "print k data" << std::endl;
+
+  std::map<int, double>::iterator it_k = map_k_data.begin();
+  for(;it_k!=map_k_data.end();it_k++){
+    std::cout << it_k->first << " => " << it_k->second << '\n';
+  }
+
+  //
   TRandom3 *rndm = new TRandom3((Long64_t)time(0));
 
   std::map<int, TH1D*> m_h;
@@ -71,7 +110,8 @@ void get_hist_cali(TString filename, int run)
   for(Long64_t i=0;i<tr->GetEntries();i++){
     tr->GetEntry(i);
     key = 10000*cid+100*sid+ch;
-    e = map_cali_data[key][0] + evte*map_cali_data[key][1] + evte*evte*map_cali_data[key][2] + rndm->Uniform(-0.5, 0.5);
+    e = map_cali_data[key][0] + evte*map_cali_data[key][1] + evte*evte*map_cali_data[key][2] + rndm->Uniform(0., 0.5);
+    e *= map_k_data[key];
 
     if(m_h.count(key)){
       m_h[key]->Fill(e);

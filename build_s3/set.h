@@ -7,6 +7,6 @@ constexpr int nMaxS3Sector = 32;
 constexpr int TimeWindow = 200; // ns
 constexpr int TimeJump = 500; // ns
 
-constexpr double CutSiEnergy = 2000.; // 
+constexpr double CutSiEnergy = 50.; // 
 
 #endif

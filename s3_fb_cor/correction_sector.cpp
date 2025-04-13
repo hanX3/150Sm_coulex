@@ -48,7 +48,7 @@ void correction_single(ofstream &fo, int run, int sector, int ring, double rob=0
 
   int n = 0;
   TString draw_str = TString::Format("%lf+%lf*s3_ring_energy:s3_sector_energy>>%s", map_ring_cor[ring][0], map_ring_cor[ring][1], hh1->GetName());
-  TString cut_str = TString::Format("n_s3_sector==1 && n_s3_ring==1 && s3_sector_id==%d && s3_ring_id==%d && s3_sector_energy>20000", sector, ring);
+  TString cut_str = TString::Format("n_s3_sector==1 && n_s3_ring==1 && s3_sector_id==%d && s3_ring_id==%d", sector, ring);
   cout << draw_str << endl;
   cout << cut_str << endl;
   cout << endl;
@@ -87,6 +87,7 @@ void correction_sector(int run)
 {
   gROOT->SetBatch(1);
 
+  gSystem->Unlink(TString::Format("correction_sector_%04d.txt",690).Data());
   ofstream fo(TString::Format("correction_sector_%04d.txt",run).Data(), std::ios::app);
   fo << " sector  p0                p1" << endl;
 

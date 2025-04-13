@@ -22,13 +22,13 @@ void correction_single(ofstream &fo, int run, int sector, int ring, double rob=0
 
   int n = 0;
   TString draw_str = TString::Format("s3_sector_energy:s3_ring_energy>>%s", hh1->GetName());
-  TString cut_str = TString::Format("n_s3_sector==1 && n_s3_ring==1 && s3_sector_id==%d && s3_ring_id==%d && s3_sector_energy>30000", sector, ring);
+  TString cut_str = TString::Format("n_s3_sector==1 && n_s3_ring==1 && s3_sector_id==%d && s3_ring_id==%d", sector, ring);
   cout << draw_str << endl;
   cout << cut_str << endl;
   cout << endl;
 
   c1->cd();
-  n = tr->Draw(draw_str.Data(), cut_str.Data(), "colz");
+  n = tr->Draw(draw_str.Data(), cut_str.Data(), "goff");
   cout << "n " << n << endl;
   gr = new TGraph(n, tr->GetV2(), tr->GetV1());
 
@@ -63,6 +63,7 @@ void correction_ring(int run)
 {
   gROOT->SetBatch(1);
 
+  gSystem->Unlink(TString::Format("correction_ring_%04d.txt",690).Data());
   ofstream fo(TString::Format("correction_ring_%04d.txt",run).Data(), std::ios::app);
   fo << " ring  p0                p1" << endl;
 

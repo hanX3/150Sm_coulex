@@ -32,3 +32,7 @@ This process is implemented in the script `get_theta_eloss_p.cpp`. The output is
  - `e_in` — energy of 150Sm at the target center (in MeV)  
  - `e_out` — energy of 150Sm after exiting the target (in MeV)
 
+### `kinematic_after_target`
++ use lise++, choose kinematic after target.
++ function `draw_theta_eloss_lise()` in `draw_theta_eloss.cpp` can be used to draw the figure.
+

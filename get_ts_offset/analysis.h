@@ -12,6 +12,7 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <fstream>
 #include <ctime>
 
 #include "raw.h"
@@ -21,8 +22,12 @@ class analysis
 {
 public:
   analysis() = default;
-  analysis(const std::string &filename_in, const std::string &filename_out);
+  analysis(const std::string &filename_in, const std::string &filename_out, const int r);
   ~analysis();
+
+public:
+  bool ReadCaliData();
+  void PrintCaliData();
 
 public:
   void ProcessGevsGe();
@@ -33,10 +38,13 @@ private:
 
 private:
   std::map<int, std::vector<Long64_t>> map_v_ts;
+  std::map<int, std::vector<double>> map_cali_data;
+  std::map<int, double> map_k_data;
 
 private:
   TBenchmark *benchmark;
 
+  int run;
   TFile *file_in;
   TTree *tr_in;
 

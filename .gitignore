@@ -1,0 +1,9 @@
+
+rootfile/
+pars/
+par/
+fig/
+out/
+decode*
+
+*.txt

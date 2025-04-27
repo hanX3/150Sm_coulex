@@ -87,7 +87,7 @@ void correction_sector(int run)
 {
   gROOT->SetBatch(1);
 
-  gSystem->Unlink(TString::Format("correction_sector_%04d.txt",690).Data());
+  gSystem->Unlink(TString::Format("correction_sector_%04d.txt",run).Data());
   ofstream fo(TString::Format("correction_sector_%04d.txt",run).Data(), std::ios::app);
   fo << " sector  p0                p1" << endl;
 

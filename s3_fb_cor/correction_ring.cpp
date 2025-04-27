@@ -63,7 +63,7 @@ void correction_ring(int run)
 {
   gROOT->SetBatch(1);
 
-  gSystem->Unlink(TString::Format("correction_ring_%04d.txt",690).Data());
+  gSystem->Unlink(TString::Format("correction_ring_%04d.txt",run).Data());
   ofstream fo(TString::Format("correction_ring_%04d.txt",run).Data(), std::ios::app);
   fo << " ring  p0                p1" << endl;
 

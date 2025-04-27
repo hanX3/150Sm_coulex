@@ -2,6 +2,8 @@
 
 max_jobs=110
 
+rm correction*.txt
+
 mkdir -p out
 
 while read run; do

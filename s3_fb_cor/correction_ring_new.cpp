@@ -5,7 +5,7 @@
 void correction_single(ofstream &fo, int run, int sector, int ring, double x0, double x1, double rob=0.6)
 {
   mkdir("fig", 0777);
-  mkdir(TString::Format("./fig/%04d", run).Data(), 0777);
+  mkdir(TString::Format("./fig/%04d",run).Data(), 0777);
 
   TFile *fi = TFile::Open(TString::Format("../rootfile/si/data%04d_gr.root", run).Data());
   if(fi->IsZombie()){
@@ -43,8 +43,8 @@ void correction_single(ofstream &fo, int run, int sector, int ring, double x0, d
   gr_residual->GetXaxis()->SetRangeUser(-5000, 5000);
   gr_residual->Draw("ap");
 
-  c2->SaveAs(TString::Format("./fig/%04d/%s.png", c2->GetName()));
-  c3->SaveAs(TString::Format("./fig/%04d/%s.png", c3->GetName()));
+  c2->SaveAs(TString::Format("./fig/%04d/%s.png", run, c2->GetName()));
+  c3->SaveAs(TString::Format("./fig/%04d/%s.png", run, c3->GetName()));
 
   fi->Close();
 
@@ -52,16 +52,22 @@ void correction_single(ofstream &fo, int run, int sector, int ring, double x0, d
 }
 
 //
-void correction_ring_new(int run, double x0, double x1)
+void correction_ring_new(int run, double x0, double x1, double rob)
 {
   gROOT->SetBatch(1);
 
-  gSystem->Unlink(TString::Format("./par/correction_ring_%04d.txt",run).Data());
-  ofstream fo(TString::Format("./par/correction_ring_%04d.txt",run).Data(), std::ios::app);
+  mkdir(TString::Format("./par/x%d_x%d_rob%.2f", (int)x0, (int)x1, rob).Data(), 0777);
+
+  gSystem->Unlink(TString::Format("./par/x%d_x%d_rob%.2f/correction_ring_%04d.txt",(int)x0,(int)x1,rob,run).Data());
+  ofstream fo(TString::Format("./par/x%d_x%d_rob%.2f/correction_ring_%04d.txt",(int)x0,(int)x1,rob,run).Data(), std::ios::app);
   fo << " ring  p0                p1" << endl;
 
   for(int i=1;i<=24;i++){
-    correction_single(fo, run, 1, i, x0, x1);
+    if(i%2==0){
+      correction_single(fo, run, 1, i, x0/10., x1/10., rob);
+    }else{
+      correction_single(fo, run, 1, i, x0, x1, rob);
+    }
   }
 
   fo.close();

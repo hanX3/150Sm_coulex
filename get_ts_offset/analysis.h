@@ -29,17 +29,24 @@ public:
   bool ReadCaliData();
   void PrintCaliData();
 
+  void ReadS3CorData();
+  void PrintS3CorData();
+
 public:
   void ProcessGevsGe();
   void ProcessSivsGe();
 
 private:
+  bool InitMapRingSector();
   void InitMapTS();
 
 private:
   std::map<int, std::vector<Long64_t>> map_v_ts;
   std::map<int, std::vector<double>> map_cali_data;
   std::map<int, double> map_k_data;
+
+  std::map<int, int> map_s3_sector, map_s3_ring;
+  std::map<int, std::vector<double>> map_s3_sector_cor_data, map_s3_ring_cor_data;
 
 private:
   TBenchmark *benchmark;

@@ -41,6 +41,9 @@ private:
   void InitMapTS();
 
 private:
+  Long64_t GetTsns();
+
+private:
   std::map<int, std::vector<Long64_t>> map_v_ts;
   std::map<int, std::vector<double>> map_cali_data;
   std::map<int, double> map_k_data;

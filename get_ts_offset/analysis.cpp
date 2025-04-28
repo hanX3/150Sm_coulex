@@ -12,6 +12,7 @@ analysis::analysis(const std::string &filename_in, const std::string &filename_o
   if(!InitMapRingSector()){
     throw std::invalid_argument("can not init ring and sector id data.");
   }
+  
 
   file_in = TFile::Open(filename_in.c_str());
   if(file_in->IsZombie()){
@@ -76,7 +77,7 @@ void analysis::InitMapTS()
     }
 
     if(rd->cid==1){
-      rd->evte = map_cali_data[key][0] + rd->evte*map_cali_data[key][1] + rd->evte*rd->evte*map_cali_data[key][2] + rndm->Uniform(0., 10);
+      rd->evte = map_cali_data[key][0] + rd->evte*map_cali_data[key][1] + rd->evte*rd->evte*map_cali_data[key][2] + rndm->Uniform(-5, 5);
       
       if(map_s3_sector.find(key)!=map_s3_sector.end()){
         rd->evte = map_s3_sector_cor_data[map_s3_sector[key]][0] + map_s3_sector_cor_data[map_s3_sector[key]][1]*rd->evte;
@@ -89,8 +90,7 @@ void analysis::InitMapTS()
     if(rd->cid==0 && rd->evte<CUTGE) continue;
     if(rd->cid==1 && rd->evte<CUTSI) continue;
 
-    if(rd->sr==250) ts_ns = rd->ts*8;
-    if(rd->sr==100) ts_ns = rd->ts*10;
+    ts_ns = GetTsns();
 
     map_v_ts[key].push_back(ts_ns);
   }
@@ -98,6 +98,26 @@ void analysis::InitMapTS()
   for(const auto &it : map_v_ts){
     std::cout << it.first << " " << it.second.size() << std::endl;
   }
+}
+
+//
+Long64_t analysis::GetTsns()
+{
+  Long64_t ts_ns = 0;
+  if(rd->cid==0){
+    if(rd->cfdft){
+      ts_ns = rd->ts*8;
+    }else{
+      ts_ns = (rd->ts*2-rd->cfds+rd->cfd/16384.)*4.;
+    }
+  }
+
+  if(rd->cid==1){
+    if(rd->sr==250) ts_ns = rd->ts*8;
+    if(rd->sr==100) ts_ns = rd->ts*10; 
+  }
+
+  return ts_ns;
 }
 
 //

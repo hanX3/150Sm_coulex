@@ -16,7 +16,6 @@ void max_offset(TString filename, int run)
   fo.open(TString::Format("./par/ts%04d.offset", run).Data());
   fo << "cid  sid  ch  ts_offset[ns]  chi_square" << endl;
   char str[1024];
-  sprintf(str, "%3d  %3d  %2d  %13.2f  %10.2f", 0, 0, 0, 0., 0.);
   fo << str << endl;
 
   int sid, ch;
@@ -37,6 +36,7 @@ void max_offset(TString filename, int run)
 
       c_ge[(i-2)*16+j] = new TCanvas(TString::Format("c_ge_%02d_%02d",i,j).Data(), "");
       c_ge[(i-2)*16+j]->cd();
+      h_ge[(i-2)*16+j]->Rebin(2);
       h_ge[(i-2)*16+j]->Draw();
 
       ts = -1000+h_ge[(i-2)*16+j]->GetMaximumBin()*h_ge[(i-2)*16+j]->GetBinWidth(0);
@@ -71,6 +71,7 @@ void max_offset(TString filename, int run)
 
       c_si[(i-2)*16+j] = new TCanvas(TString::Format("c_si_%02d_%02d",i,j).Data(), "");
       c_si[(i-2)*16+j]->cd();
+      h_si[(i-2)*16+j]->Rebin(2);
       h_si[(i-2)*16+j]->Draw();
 
       ts = -1000+h_si[(i-2)*16+j]->GetMaximumBin()*h_si[(i-2)*16+j]->GetBinWidth(0);

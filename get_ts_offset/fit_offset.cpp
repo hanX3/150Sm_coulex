@@ -16,7 +16,6 @@ void fit_offset(TString filename, int run)
   fo.open(TString::Format("./par/ts%04d.offset", run).Data());
   fo << "cid  sid  ch  ts_offset[ns]  chi_square" << endl;
   char str[1024];
-  sprintf(str, "%3d  %3d  %2d  %13.2f  %10.2f", 0, 0, 0, 0., 0.);
   fo << str << endl;
 
   int sid, ch;
@@ -37,12 +36,19 @@ void fit_offset(TString filename, int run)
 
       c_ge[(i-2)*16+j] = new TCanvas(TString::Format("c_ge_%02d_%02d",i,j).Data(), "");
       c_ge[(i-2)*16+j]->cd();
+      h_ge[(i-2)*16+j]->Rebin(8);
       h_ge[(i-2)*16+j]->Draw();
-      h_ge[(i-2)*16+j]->Fit("gaus", "", "", -300, 300);
+      h_ge[(i-2)*16+j]->Fit("gaus", "S", "", -300, 300);
       TF1 *fg = (TF1*)gROOT->GetListOfFunctions()->FindObject("gaus");
+
+      TLatex *l1 = new TLatex();
+      l1->SetTextSize(0.05);
+      l1->SetTextColor(4);
+      l1->DrawLatex(-800, 0.9*h_ge[(i-2)*16+j]->GetMaximum(), TString::Format("%.2f ns",fg->GetParameter(1)).Data());
+
       c_ge[(i-2)*16+j]->SaveAs(TString::Format("./fig/%04d/c1_ge_%02d_%02d.png",run,i,j).Data());
 
-      TF1 *fgg = new TF1("fgg", "gaus(0)+pol0(3)", fg->GetParameter(1)-1.5*fg->GetParameter(2), fg->GetParameter(1)+1.5*fg->GetParameter(2));
+      TF1 *fgg = new TF1("fgg", "gaus(0)+pol0(3)", fg->GetParameter(1)-1.8*fg->GetParameter(2), fg->GetParameter(1)+1.8*fg->GetParameter(2));
       fgg->SetParameter(0, fg->GetParameter(0));
       fgg->SetParameter(1, fg->GetParameter(1));
       fgg->SetParameter(2, fg->GetParameter(2));
@@ -54,10 +60,10 @@ void fit_offset(TString filename, int run)
       ts = fgg->GetParameter(1);
       chi2 = fgg->GetChisquare();
 
-      TLatex *latex = new TLatex();
-      latex->SetTextSize(0.05);
-      latex->SetTextColor(2);
-      latex->DrawLatex(-800, 0.9*h_ge[(i-2)*16+j]->GetMaximum(), TString::Format("%.2f ns",ts).Data());
+      TLatex *l2 = new TLatex();
+      l2->SetTextSize(0.05);
+      l2->SetTextColor(2);
+      l2->DrawLatex(-800, 0.9*h_ge[(i-2)*16+j]->GetMaximum(), TString::Format("%.2f ns",ts).Data());
 
       c_ge[(i-2)*16+j]->SaveAs(TString::Format("./fig/%04d/c2_ge_%02d_%02d.png",run,i,j).Data());
 
@@ -65,7 +71,9 @@ void fit_offset(TString filename, int run)
       fo << str << endl;
       if(fg) delete fg;
       if(fgg) delete fgg;
-      if(latex) delete latex;
+      if(l1) delete l1;
+      if(l2) delete l2;
+      if(h_ge[(i-2)*16+j]) delete h_ge[(i-2)*16+j];
     }
   }
 
@@ -84,12 +92,19 @@ void fit_offset(TString filename, int run)
 
       c_si[(i-2)*16+j] = new TCanvas(TString::Format("c_si_%02d_%02d",i,j).Data(), "");
       c_si[(i-2)*16+j]->cd();
+      h_si[(i-2)*16+j]->Rebin(8);
       h_si[(i-2)*16+j]->Draw();
-      h_si[(i-2)*16+j]->Fit("gaus", "", "", 200, 800);
+      h_si[(i-2)*16+j]->Fit("gaus", "", "", 300, 600);
       TF1 *fg = (TF1*)gROOT->GetListOfFunctions()->FindObject("gaus");
+
+      TLatex *l1 = new TLatex();
+      l1->SetTextSize(0.05);
+      l1->SetTextColor(4);
+      l1->DrawLatex(-800, 0.9*h_si[(i-2)*16+j]->GetMaximum(), TString::Format("%.2f ns",fg->GetParameter(1)).Data());
+
       c_si[(i-2)*16+j]->SaveAs(TString::Format("./fig/%04d/c1_si_%02d_%02d.png",run,i,j).Data()); 
 
-      TF1 *fgg = new TF1("fgg", "gaus(0)+pol0(3)", fg->GetParameter(1)-1.5*fg->GetParameter(2), fg->GetParameter(1)+1.5*fg->GetParameter(2));
+      TF1 *fgg = new TF1("fgg", "gaus(0)+pol0(3)", fg->GetParameter(1)-1.0*fg->GetParameter(2), fg->GetParameter(1)+0.3*fg->GetParameter(2));
       fgg->SetParameter(0, fg->GetParameter(0));
       fgg->SetParameter(1, fg->GetParameter(1));
       fgg->SetParameter(2, fg->GetParameter(2));
@@ -98,13 +113,13 @@ void fit_offset(TString filename, int run)
       h_si[(i-2)*16+j]->Draw();
       h_si[(i-2)*16+j]->Fit("fgg", "R");
       
-      ts = fg->GetParameter(1);
-      chi2 = fg->GetChisquare();
+      ts = fgg->GetParameter(1);
+      chi2 = fgg->GetChisquare();
 
-      TLatex *latex = new TLatex();
-      latex->SetTextSize(0.05);
-      latex->SetTextColor(2);
-      latex->DrawLatex(-800, 0.9*h_ge[(i-2)*16+j]->GetMaximum(), TString::Format("%.2f ns",ts).Data());
+      TLatex *l2 = new TLatex();
+      l2->SetTextSize(0.05);
+      l2->SetTextColor(2);
+      l2->DrawLatex(-800, 0.9*h_si[(i-2)*16+j]->GetMaximum(), TString::Format("%.2f ns",ts).Data());
 
       c_si[(i-2)*16+j]->SaveAs(TString::Format("./fig/%04d/c2_si_%02d_%02d.png",run,i,j).Data());
     
@@ -112,6 +127,10 @@ void fit_offset(TString filename, int run)
       fo << str << endl;
       if(fg) delete fg;
       if(fgg) delete fgg;
+      if(l1) delete l1;
+      if(l2) delete l2;
+      // if(h_si[(i-2)*16+j]) delete h_si[(i-2)*16+j];
+      // if(c_si[(i-2)*16+j]) delete c_si[(i-2)*16+j];
     }
   }
 

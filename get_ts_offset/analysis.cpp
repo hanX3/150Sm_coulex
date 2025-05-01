@@ -41,14 +41,14 @@ analysis::analysis(const std::string &filename_in, const std::string &filename_o
   // time differents Ge
   for(int i=2;i<=5;i++){
     for(int j=0;j<16;j++){
-      h1[(i-2)*16+j] = new TH1D(TString::Format("ge_sid%d_ch%02d",i,j).Data(), "", 2*ALIGNMENTWINDOW/10, -ALIGNMENTWINDOW, ALIGNMENTWINDOW);
+      h1[(i-2)*16+j] = new TH1D(TString::Format("ge_sid%d_ch%02d",i,j).Data(), "", 2*ALIGNMENTWINDOW/BINWIDTH, -ALIGNMENTWINDOW, ALIGNMENTWINDOW);
     }
   }
 
   // time differents Si
   for(int i=2;i<=12;i++){
     for(int j=0;j<16;j++){
-      h2[(i-2)*16+j] = new TH1D(TString::Format("si_sid%d_ch%02d",i,j).Data(), "", 2*ALIGNMENTWINDOW/10, -ALIGNMENTWINDOW, ALIGNMENTWINDOW);
+      h2[(i-2)*16+j] = new TH1D(TString::Format("si_sid%d_ch%02d",i,j).Data(), "", 2*ALIGNMENTWINDOW/BINWIDTH, -ALIGNMENTWINDOW, ALIGNMENTWINDOW);
     }
   }
 }
@@ -147,7 +147,7 @@ void analysis::ProcessGevsGe()
           ts_ns2 = map_v_ts[key][n];
 
           if(abs(ts_ns1-ts_ns2)<ALIGNMENTWINDOW){
-            h1[(i-2)*16+j]->Fill(ts_ns1-ts_ns2+rndm->Uniform(-10., 10.));
+            h1[(i-2)*16+j]->Fill(ts_ns1-ts_ns2+rndm->Uniform(-BINWIDTH/2., BINWIDTH/2.));
             n++;
           }else if((ts_ns1-ts_ns2)>ALIGNMENTWINDOW){
             n++;
@@ -194,7 +194,7 @@ void analysis::ProcessSivsGe()
           ts_ns2 = map_v_ts[key][n];
 
           if(abs(ts_ns1-ts_ns2)<ALIGNMENTWINDOW){
-            h2[(i-2)*16+j]->Fill(ts_ns1-ts_ns2+rndm->Uniform(-10., 10.));
+            h2[(i-2)*16+j]->Fill(ts_ns1-ts_ns2+rndm->Uniform(-BINWIDTH/2., BINWIDTH/2.));
             n++;
           }else if((ts_ns1-ts_ns2)>ALIGNMENTWINDOW){
             n++;

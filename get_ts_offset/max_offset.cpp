@@ -16,7 +16,6 @@ void max_offset(TString filename, int run)
   fo.open(TString::Format("./par/ts%04d.offset", run).Data());
   fo << "cid  sid  ch  ts_offset[ns]  chi_square" << endl;
   char str[1024];
-  fo << str << endl;
 
   int sid, ch;
   double ts, chi2;

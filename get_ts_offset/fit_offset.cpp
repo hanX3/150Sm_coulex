@@ -16,7 +16,6 @@ void fit_offset(TString filename, int run)
   fo.open(TString::Format("./par/ts%04d.offset", run).Data());
   fo << "cid  sid  ch  ts_offset[ns]  chi_square" << endl;
   char str[1024];
-  fo << str << endl;
 
   int sid, ch;
   double ts, chi2;
@@ -48,7 +47,7 @@ void fit_offset(TString filename, int run)
 
       c_ge[(i-2)*16+j]->SaveAs(TString::Format("./fig/%04d/c1_ge_%02d_%02d.png",run,i,j).Data());
 
-      TF1 *fgg = new TF1("fgg", "gaus(0)+pol0(3)", fg->GetParameter(1)-1.8*fg->GetParameter(2), fg->GetParameter(1)+1.8*fg->GetParameter(2));
+      TF1 *fgg = new TF1("fgg", "gaus(0)+pol0(3)", fg->GetParameter(1)-1.4*fg->GetParameter(2), fg->GetParameter(1)+1.4*fg->GetParameter(2));
       fgg->SetParameter(0, fg->GetParameter(0));
       fgg->SetParameter(1, fg->GetParameter(1));
       fgg->SetParameter(2, fg->GetParameter(2));

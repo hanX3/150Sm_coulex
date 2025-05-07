@@ -131,17 +131,18 @@ void analysis::ProcessGevsGe()
   std::cout << "Ge vs. Ge" << std::endl;
   
   int key = 0;
+  int key_ref = KEYREF;
   for(int i=2;i<=5;i++){
     for(int j=0;j<16;j++){
       m = 0;
       n = 0;
       key = 100*i+j;
       if(map_v_ts[key].size()==0) continue;
-      if(key==205) continue;
+      if(key==key_ref) continue;
 
       while(true){
-        if(static_cast<std::size_t>(m)==map_v_ts[205].size() || static_cast<std::size_t>(n)==map_v_ts[key].size()) break;
-        ts_ns1 = map_v_ts[205][m];
+        if(static_cast<std::size_t>(m)==map_v_ts[key_ref].size() || static_cast<std::size_t>(n)==map_v_ts[key].size()) break;
+        ts_ns1 = map_v_ts[key_ref][m];
         while(true){
           if(static_cast<std::size_t>(n)==map_v_ts[key].size())  break;
           ts_ns2 = map_v_ts[key][n];
@@ -179,6 +180,7 @@ void analysis::ProcessSivsGe()
   std::cout << "Si vs. Ge" << std::endl;
   
   int key = 0;
+  int key_ref = KEYREF;
   for(int i=2;i<=12;i++){
     for(int j=0;j<16;j++){
       m = 0;
@@ -187,8 +189,8 @@ void analysis::ProcessSivsGe()
       if(map_v_ts[key].size()==0) continue;
 
       while(true){
-        if(static_cast<std::size_t>(m)==map_v_ts[205].size() || static_cast<std::size_t>(n)==map_v_ts[key].size()) break;
-        ts_ns1 = map_v_ts[205][m];
+        if(static_cast<std::size_t>(m)==map_v_ts[key_ref].size() || static_cast<std::size_t>(n)==map_v_ts[key].size()) break;
+        ts_ns1 = map_v_ts[key_ref][m];
         while(true){
           if(static_cast<std::size_t>(n)==map_v_ts[key].size())  break;
           ts_ns2 = map_v_ts[key][n];

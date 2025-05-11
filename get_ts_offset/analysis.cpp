@@ -283,7 +283,7 @@ bool analysis::ReadCaliData()
 
   //
   std::ifstream fi_cali_si;
-  if(run==460 || (run>=472 && run<=605)){
+  if(run==377 || run==460 || (run>=472 && run<=605)){
     fi_cali_si.open("../pars/cali_si_r460.txt");
   }else if((run>=616 && run<=674) || run==722){
     fi_cali_si.open("../pars/cali_si_r457_low_current.txt");
@@ -405,7 +405,7 @@ bool analysis::InitMapRingSector()
 {
   std::cout << "start init ring and sector id." << std::endl;
 
-  if((run>=457 && run<=462) || (run>=472 && run<=605) || (run>=680 && run<=718)){
+  if(run==377 || (run>=457 && run<=462) || (run>=472 && run<=605) || (run>=680 && run<=718)){
     map_s3_sector = {
       {10900, 10},
       {10901, 12},

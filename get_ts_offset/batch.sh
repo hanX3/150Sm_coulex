@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-max_jobs=50
+max_jobs=90
 
 while read run; do
   ./analysis $run > out/$run &

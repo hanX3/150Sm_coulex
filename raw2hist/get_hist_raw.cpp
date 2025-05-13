@@ -45,7 +45,7 @@ void get_hist_raw(TString filename, int run)
   std::cout << std::endl;
 
   //
-  TFile *fo = new TFile(TString::Format("../rootfile/ge/data%04d_hist.root",run).Data(), "recreate");
+  TFile *fo = new TFile(TString::Format("../rootfile/si/data%04d_hist.root",run).Data(), "recreate");
 
   map<int, TDirectory*> m_dir;
   for(const auto &it : m_h){

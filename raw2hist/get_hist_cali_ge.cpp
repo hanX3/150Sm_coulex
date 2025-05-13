@@ -26,7 +26,7 @@ void get_hist_cali(TString filename, int run)
   std::cout << "read cali data" << std::endl;
 
   std::ifstream fi_cali;
-  fi_cali.open("../pars/cali.txt");
+  fi_cali.open("../pars/cali_ge.txt");
   if(!fi_cali){
     std::cout << "can not open cali.txt" << std::endl;
     return ;

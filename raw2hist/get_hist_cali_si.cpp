@@ -2,7 +2,7 @@
 bool InitMapRingSector(int &run, map<int, int> &m_s, map<int, int> &m_r);
 
 //
-void get_hist_cali(TString filename, int run)
+void get_hist_cali_si(TString filename, int run)
 {
   TFile *fi;
   TTree *tr;
@@ -81,7 +81,7 @@ void get_hist_cali(TString filename, int run)
   map<int, vector<double>> map_sector_cor_par, map_ring_cor_par;
 
   int id;
-  ifstream fi_fb_cor_sector(TString::Format("../pars/run_fb_cor/correction_sector_%04d.txt",run).Data());
+  ifstream fi_fb_cor_sector(TString::Format("../s3_fb_cor/par/x5000_x80000_rob0.60/correction_sector_%04d.txt",run).Data());
   if(!fi_fb_cor_sector){
     cout << "can not open sector correction file." << endl;
     for(int i=1;i<=32;i++){
@@ -99,7 +99,7 @@ void get_hist_cali(TString filename, int run)
     fi_fb_cor_sector.close();
   }
 
-  ifstream fi_fb_cor_ring(TString::Format("../pars/run_fb_cor/correction_ring_%04d.txt",run).Data());
+  ifstream fi_fb_cor_ring(TString::Format("../s3_fb_cor/par/x5000_x80000_rob0.60/correction_ring_%04d.txt",run).Data());
   if(!fi_fb_cor_ring){
     cout << "can not open ring correction file." << endl;
     for(int i=1;i<=24;i++){

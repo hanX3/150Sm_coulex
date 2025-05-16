@@ -14,7 +14,7 @@ int main(int argc, char* argv[])
   TString fi_name = TString::Format("../rootfile/data%04d_build_%dns.root", run, COINWIDTH);
   std::cout << "analysis " << fi_name << std::endl;
 
-  TString fo_name = TString::Format("../rootfile/data%04d_doppler_%dns.root", run, COINWIDTH);
+  TString fo_name = TString::Format("../rootfile/data%04d_doppler_%dns_%s.root", run, COINWIDTH, CONFIGURE);
   doppler *dp = new doppler(fi_name.Data(), fo_name.Data());
 
   dp->Process();

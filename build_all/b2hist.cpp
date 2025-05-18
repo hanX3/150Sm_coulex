@@ -1,8 +1,9 @@
+//
 void b2hist(TString str, int run)
 {
   TRandom3 *rndm = new TRandom3((Long64_t)time(0)); 
 
-  TFile *fi = TFile::Open(TString::Format("../rootfile/data%04d_build_1000ns.root",run).Data());
+  TFile *fi = TFile::Open(TString::Format("../rootfile/data%04d_build_200ns.root",run).Data());
   if(fi->IsZombie()){
     std::cout << "open file run " << run << " error!" << std::endl;
     delete fi;
@@ -51,13 +52,13 @@ void b2hist(TString str, int run)
   TH1D *h_spider_spider, *h_spider_s3, *h_s3_s3;
   TH2D *hh_spider_spot, *hh_s3_sector_spot, *hh_s3_ring_spot;
 
-  hpg = new TH1D("hpg", "", 2000, -1000, 1000);
-  hgg = new TH1D("hgg", "", 2000, -1000, 1000);
-  hpp = new TH1D("hpp", "", 2000, -1000, 1000);
-  h_spider_ge = new TH1D("h_spider_ge", "", 2000, -1000, 1000);
-  h_s3_ge = new TH1D("h_s3_ge", "", 2000, -1000, 1000);
-  h_spider_spider = new TH1D("h_spider_spider", "", 2000, -1000, 1000);
-  h_s3_s3 = new TH1D("h_s3_s3", "", 2000, -1000, 1000);
+  hpg = new TH1D("hpg", "", 600, -300, 300);
+  hgg = new TH1D("hgg", "", 600, -300, 300);
+  hpp = new TH1D("hpp", "", 600, -300, 300);
+  h_spider_ge = new TH1D("h_spider_ge", "", 600, -300, 300);
+  h_s3_ge = new TH1D("h_s3_ge", "", 600, -300, 300);
+  h_spider_spider = new TH1D("h_spider_spider", "", 600, -300, 300);
+  h_s3_s3 = new TH1D("h_s3_s3", "", 600, -300, 300);
   hh_spider_spot = new TH2D("hh_spider_spot", "", 320,-80,80,320,-80,80);
   hh_s3_sector_spot = new TH2D("hh_s3_sector_spot", "", 720,-36,36,720,-36,36);
   hh_s3_ring_spot = new TH2D("hh_s3_ring_spot", "", 360,-36,36,360,-36,36);

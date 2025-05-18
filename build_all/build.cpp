@@ -145,8 +145,8 @@ void build::GetGeSpiderS3Event(TString tr_name, double abs_time1, double abs_tim
   tr->Branch("n_ge", &n_ge, "n_ge/I");
   tr->Branch("ge_sid", ge_sid, "ge_sid[n_ge]/S");
   tr->Branch("ge_ch", ge_ch, "ge_ch[n_ge]/S");
-  tr->Branch("ge_ring_id", ge_ring_id, "ge_ch[n_ge]/S");
-  tr->Branch("ge_sector_id", ge_ch, "ge_sector_id[n_ge]/S");
+  tr->Branch("ge_ring_id", ge_ring_id, "ge_ring_id[n_ge]/S");
+  tr->Branch("ge_sector_id", ge_sector_id, "ge_sector_id[n_ge]/S");
   tr->Branch("ge_energy", ge_energy, "ge_energy[n_ge]/D");
   tr->Branch("ge_ts", ge_ts, "ge_ts[n_ge]/L");
 

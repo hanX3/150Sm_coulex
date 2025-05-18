@@ -4,6 +4,8 @@
 //
 void draw_sample(int run)
 {
+  gROOT->SetBatch(1);
+
   mkdir(TString::Format("./fig/%04d", run).Data(), 0777);
 
   int colors[12] = {
@@ -16,7 +18,7 @@ void draw_sample(int run)
   };
 
   //
-  TFile *fi =  TFile::Open(TString::Format("../rootfile/data%04d_build_1000ns_hist_event.root",run).Data());
+  TFile *fi =  TFile::Open(TString::Format("../rootfile/data%04d_build_200ns_hist_event.root",run).Data());
   if(fi->IsZombie()){
     cout << "cannot open the file." << std::endl;
     return;

@@ -9,7 +9,7 @@ void get_par_single(ofstream &fo, int run, int cid, int sid, int ch)
   TFile *fi = new TFile(str_tmp.Data());
   if(fi==NULL){
     cout << "open file " << str_tmp.Data() << " error!!!" << endl;
-    return -1;
+    return;
   }
 
   gFile->cd(TString::Format("cid%d_sid%02d", cid, sid).Data());

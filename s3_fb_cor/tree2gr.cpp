@@ -25,9 +25,11 @@ void tree2gr_sector(int run)
     cout << "n " << n << endl;
     gr[i-1] = new TGraph(n, tr->GetV1(), tr->GetV2());
     gr[i-1]->SetName(hh_for_sector[i-1]->GetName());
+
+    if(hh_for_sector[i-1]) delete hh_for_sector[i-1];
   }
 
-  TFile *fo = new TFile(TString::Format("../rootfile/si/data%04d_gr.root", run).Data(), "recreate");
+  TFile *fo = new TFile(TString::Format("../rootfile/si/data%04d_gr2.root", run).Data(), "recreate");
 
   fo->cd();
   for(int i=0;i<32;i++){
@@ -66,9 +68,11 @@ void tree2gr_ring(int run)
     cout << "n " << n << endl;
     gr[i-1] = new TGraph(n, tr->GetV2(), tr->GetV1());
     gr[i-1]->SetName(hh_for_ring[i-1]->GetName());
+
+    if(hh_for_ring[i-1]) delete hh_for_ring[i-1];
   }
 
-  TFile *fo = new TFile(TString::Format("../rootfile/si/data%04d_gr.root", run).Data(), "update");
+  TFile *fo = new TFile(TString::Format("../rootfile/si/data%04d_gr2.root", run).Data(), "update");
 
   fo->cd();
   for(int i=0;i<24;i++){

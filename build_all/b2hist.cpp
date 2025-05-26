@@ -15,6 +15,9 @@ void b2hist(TString str, int run)
   raw *rd = new raw(tr); 
 
   //
+  TFile *fo = new TFile(TString::Format("../rootfile/data%04d_build_200ns_hist_%s.root",run,str.Data()).Data(), "recreate");
+  
+  //
   double spider_r_min[8] = {4.63, 14.29, 22.99, 31.69, 40.39, 49.09, 57.79, 66.49};
   double spider_r_max[8] = {14.09, 22.79, 31.49, 40.19, 48.89, 57.59, 66.29, 75.20};
   double spider_phi_min[12], spider_phi_max[12];
@@ -272,9 +275,6 @@ void b2hist(TString str, int run)
   tr->Draw(TString::Format("s3_sector_energy:s3_sector_id>>%s",hh_s3_sector_energy->GetName()).Data(), "", "goff");
   tr->Draw(TString::Format("s3_ring_energy:s3_ring_id>>%s",hh_s3_ring_energy->GetName()).Data(), "", "goff");
 
-  //
-  TFile *fo = new TFile(TString::Format("../rootfile/data%04d_build_1000ns_hist_%s.root",run,str.Data()).Data(), "recreate");
-  
   fo->cd();
   hh_spider_spot->Write();
   hh_s3_sector_spot->Write();

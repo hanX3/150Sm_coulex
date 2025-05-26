@@ -349,13 +349,13 @@ void build::GetGeSpiderS3Event(TString tr_name, double abs_time1, double abs_tim
     // std::cout << "n_ge " << n_ge << std::endl;
     // std::cout << " n_spider " << n_spider << std::endl;
     // std::cout << " n_s3_sector " << n_s3_sector << " n_s3_ring " << n_s3_ring << std::endl;
-    if(n_ge*(n_spider+n_s3_sector+n_s3_ring) > 0){
+    if(n_ge > 0){
       n_evt++;
 
       file_out->cd();
       tr->Fill();
 
-      if(n_evt%1000==0){
+      if(n_evt%10000==0){
         std::cout << "\r" << n_evt << "  " << i << "/" << tr_in->GetEntries();
         std::cout << std::flush;
       }

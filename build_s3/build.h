@@ -23,7 +23,7 @@ public:
 
   void Process();
 
-  void GetSi3FrontBackData(TString tr_name, double abs_time1, double abs_time2);
+  void GetS3FrontBackData(TString tr_name, double abs_time1, double abs_time2);
   void SaveFile();
 
 private:
@@ -41,7 +41,6 @@ private:
   bool ReadTSOffset();
   void PrintTSOffset();
 
-private:
   bool InitMapSectorRingID();
   void PrintMapSectorRingID();
 

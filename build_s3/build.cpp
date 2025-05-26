@@ -71,13 +71,13 @@ void build::Process()
   //
   double time_window = TimeWindow;
   //
-  GetSi3FrontBackData("tr_s3", 0, time_window);
+  GetS3FrontBackData("tr_s3", 0, time_window);
   
   benchmark->Show("build");
 }
 
 //
-void build::GetSi3FrontBackData(TString tr_name, double abs_time1, double abs_time2)
+void build::GetS3FrontBackData(TString tr_name, double abs_time1, double abs_time2)
 {
   std::cout << "start get s3 front and back data" << std::endl;
 
@@ -338,7 +338,7 @@ bool build::ReadCaliData()
   //
   std::ifstream fi;
   
-  if(run==460 || (run>=472 && run<=605)){
+  if(run==460 || (run>=472 && run<=605) || run==723){
     fi.open("../pars/cali_si_r460.txt");
   }else if((run>=616 && run<=674) || run==722){
     fi.open("../pars/cali_si_r457_low_current.txt");

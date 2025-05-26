@@ -164,6 +164,17 @@ void sort::GetEnergy()
     if(map_s3_ring_id.find(key)!=map_s3_ring_id.end()){
       sd.evte = map_s3_ring_cor_data[map_s3_ring_id[key]][0]+sd.evte*map_s3_ring_cor_data[map_s3_ring_id[key]][1];
     }
+
+    if((run>475&&run<616) || (run>=680&&run<=718)){
+      if(rd->sid==2){
+        sd.evte *= 4.;
+      } 
+    }
+    if((run>=616&&run<=674)){
+      if(rd->sid==9){
+        sd.evte *= 4.;
+      } 
+    }
   }
 }
 

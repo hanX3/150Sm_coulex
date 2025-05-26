@@ -4,7 +4,7 @@
 //
 void draw_sample(int run, TString str="")
 {
-  gROOT->SetBatch(1);
+  // gROOT->SetBatch(1);
 
   mkdir(TString::Format("./fig/%04d", run).Data(), 0777);
 
@@ -293,8 +293,8 @@ void draw_sample(int run, TString str="")
   //
   TLegend *leg11 = new TLegend(0.7, 0.4, 0.98, 0.95);
   for(int i=0;i<8;i++){
-    h11[i]->GetXaxis()->SetRangeUser(0, 1200);
-    h11[i]->GetYaxis()->SetRangeUser(1, 100000);
+    // h11[i]->GetXaxis()->SetRangeUser(0, 1200);
+    // h11[i]->GetYaxis()->SetRangeUser(1, 100000);
     h11[i]->SetLineColor(colors[i]);
     if(i==0) h11[i]->Draw();
     else h11[i]->Draw("same");
@@ -358,6 +358,45 @@ void draw_sample(int run, TString str="")
   }
   leg14->Draw("same");
   c1->SaveAs(TString::Format("./fig/%04d/e_dc_r_diff_spider_sector.pdf", run).Data());
+
+  //
+  ofstream fo[8];
+  TCanvas *c3 = new TCanvas("c3","",0,0,800,800);
+  c3->Divide(1, 8);
+  for(int i=0;i<8;i++){
+    c3->cd(i+1);
+    gPad->SetLogy();
+    h11[i]->Rebin(4);
+    h11[i]->GetXaxis()->SetRangeUser(0, 1200);
+    h11[i]->Draw();
+
+    fo[i].open(TString::Format("ring_%d.txt",i+1).Data());
+    for(int j=0;j<h11[i]->GetNbinsX();j++){
+      fo[i] << h11[i]->GetBinCenter(j+1) << " " << h11[i]->GetBinContent(j+1) << endl;
+    }
+    fo[i].close();
+  }
+  c3->SaveAs(TString::Format("./fig/%04d/e_dc_r_spider_ring.pdf", run).Data());
+
+  //
+  ofstream fo_e_raw("e_raw.txt");
+  for(int i=0;i<h1[4]->GetNbinsX();i++){
+    fo_e_raw << h1[4]->GetBinCenter(i+1) << " " << h1[4]->GetBinContent(i+1) << endl;
+  }
+  fo_e_raw.close();
+
+  ofstream fo_e_dcp("e_dcp.txt");
+  for(int i=0;i<h2[4]->GetNbinsX();i++){
+    fo_e_dcp << h2[4]->GetBinCenter(i+1) << " " << h2[4]->GetBinContent(i+1) << endl;
+  }
+  fo_e_dcp.close();
+
+  ofstream fo_e_dcr("e_dcr.txt");
+  for(int i=0;i<h3[4]->GetNbinsX();i++){
+    fo_e_dcr << h3[4]->GetBinCenter(i+1) << " " << h3[4]->GetBinContent(i+1) << endl;
+  }
+  fo_e_dcr.close();
+
 
   /*
   for(int i=0;i<5;i++){

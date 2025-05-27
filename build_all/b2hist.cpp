@@ -1,9 +1,9 @@
 //
-void b2hist(TString str, int run)
+void b2hist(int run, int win, TString str)
 {
   TRandom3 *rndm = new TRandom3((Long64_t)time(0)); 
 
-  TFile *fi = TFile::Open(TString::Format("../rootfile/data%04d_build_200ns.root",run).Data());
+  TFile *fi = TFile::Open(TString::Format("../rootfile/data%04d_build_%dns.root",run,win).Data());
   if(fi->IsZombie()){
     std::cout << "open file run " << run << " error!" << std::endl;
     delete fi;
@@ -15,7 +15,7 @@ void b2hist(TString str, int run)
   raw *rd = new raw(tr); 
 
   //
-  TFile *fo = new TFile(TString::Format("../rootfile/data%04d_build_200ns_hist_%s.root",run,str.Data()).Data(), "recreate");
+  TFile *fo = new TFile(TString::Format("../rootfile/data%04d_build_%dns_hist_%s.root",run,win,str.Data()).Data(), "recreate");
   
   //
   double spider_r_min[8] = {4.63, 14.29, 22.99, 31.69, 40.39, 49.09, 57.79, 66.49};
@@ -68,7 +68,7 @@ void b2hist(TString str, int run)
 
   double spider_r, spider_angle, spider_x, spider_y;
   double s3_r, s3_angle, s3_x, s3_y;
-  //
+
   cout <<  rd->GetEntries() << endl;
   for(Long64_t i=0;i<rd->GetEntries();i++){
     if(i%100000==0) cout << i << "/" << rd->GetEntries() << endl;
@@ -199,6 +199,7 @@ void b2hist(TString str, int run)
   }
 
   //
+  cout << "start spider\n";
   TH1D *h_n_spider;
   TH1D *h_spider_sector_id, *h_spider_ring_id;
   TH1D *h_spider_energy;
@@ -240,6 +241,7 @@ void b2hist(TString str, int run)
   tr->Draw(TString::Format("spider_energy:(spider_ring_id-1)*12+spider_sector_id>>%s",hh_spider_energy->GetName()).Data(), "", "goff");
 
   //
+  cout << "start s3\n";
   TH1D *h_n_s3_sector, *h_n_s3_ring;
   TH1D *h_s3_sector_id, *h_s3_ring_id;
   TH1D *h_s3_sector_energy, *h_s3_ring_energy;
@@ -274,8 +276,55 @@ void b2hist(TString str, int run)
   tr->Draw(TString::Format("s3_ring_energy>>%s",h_s3_ring_energy->GetName()).Data(), "", "goff");
   tr->Draw(TString::Format("s3_sector_energy:s3_sector_id>>%s",hh_s3_sector_energy->GetName()).Data(), "", "goff");
   tr->Draw(TString::Format("s3_ring_energy:s3_ring_id>>%s",hh_s3_ring_energy->GetName()).Data(), "", "goff");
+  //
+  cout << "start ge spectra\n"; 
+  map<int, int> map_ge_ring_sector = {
+    {1, 6},
+    {2, 8},
+    {3, 12},
+    {4, 8},
+    {5, 6}
+  };
 
+  TH1D *h_ge[40], *h_ge_spider[40], *h_ge_s3[40], *h_ge_spider_cut[40], *h_ge_s3_cut[40];
+  int k = 0;
+  for(int i=1;i<=5;i++){
+    for(int j=1;j<=map_ge_ring_sector[i];j++){
+      h_ge[k] = new TH1D(TString::Format("h_ge_ring%d_sector%d",i,j),"",4096,0,4096);
+      h_ge_spider[k] = new TH1D(TString::Format("h_ge_ring%d_sector%d_spider",i,j),"",4096,0,4096);
+      h_ge_s3[k] = new TH1D(TString::Format("h_ge_ring%d_sector%d_s3",i,j),"",4096,0,4096);
+      h_ge_spider_cut[k] = new TH1D(TString::Format("h_ge_ring%d_sector%d_spider_cut",i,j),"",4096,0,4096);
+      h_ge_s3_cut[k] = new TH1D(TString::Format("h_ge_ring%d_sector%d_s3_cut",i,j),"",4096,0,4096);
+
+      //
+      TString cut_str = TString::Format("ge_ring_id==%d && ge_sector_id==%d", i, j);
+      tr->Draw(TString::Format("ge_energy>>%s",h_ge[k]->GetName()).Data(), cut_str.Data(),"goff");
+      h_ge[k]->SetTitle(cut_str);
+      cout << h_ge[k]->GetName() << endl;
+      //
+      TString cut_str_spider = TString::Format("ge_ring_id==%d && ge_sector_id==%d && n_spider>0", i, j);
+      tr->Draw(TString::Format("ge_energy>>%s",h_ge_spider[k]->GetName()).Data(), cut_str_spider.Data(),"goff");
+      h_ge_spider[k]->SetTitle(cut_str_spider);
+      cout << h_ge_spider[k]->GetName() << endl;
+      //
+      TString cut_str_s3 = TString::Format("ge_ring_id==%d && ge_sector_id==%d && (n_s3_ring+n_s3_sector)>0", i, j);
+      tr->Draw(TString::Format("ge_energy>>%s",h_ge_s3[k]->GetName()).Data(), cut_str_s3.Data(),"goff");
+      h_ge_s3[k]->SetTitle(cut_str_s3);
+      //
+      TString cut_str_spider_cut = TString::Format("ge_ring_id==%d && ge_sector_id==%d && n_spider>0 &&spider_energy>20000", i, j);
+      tr->Draw(TString::Format("ge_energy>>%s",h_ge_spider_cut[k]->GetName()).Data(), cut_str_spider_cut.Data(),"goff");
+      h_ge_spider_cut[k]->SetTitle(cut_str_spider_cut);
+      //
+      TString cut_str_s3_cut = TString::Format("ge_ring_id==%d && ge_sector_id==%d && (n_s3_ring+n_s3_sector)>0 &&(s3_ring_energy>30000||s3_sector_energy>30000)", i, j);
+      tr->Draw(TString::Format("ge_energy>>%s",h_ge_s3_cut[k]->GetName()).Data(), cut_str_s3_cut.Data(),"goff");
+      h_ge_s3_cut[k]->SetTitle(cut_str_s3_cut);
+      k++;
+    }
+  }
+
+  //
   fo->cd();
+
   hh_spider_spot->Write();
   hh_s3_sector_spot->Write();
   hh_s3_ring_spot->Write();
@@ -322,7 +371,21 @@ void b2hist(TString str, int run)
     h_s3_ring_energy_single[i]->Write();
   }
 
-  fo->Close();
+  //
+  k = 0;
+  for(int i=1;i<=5;i++){
+    for(int j=1;j<=map_ge_ring_sector[i];j++){
+      h_ge[k]->Write();
+      h_ge_spider[k]->Write();
+      h_ge_s3[k]->Write();
+      h_ge_spider_cut[k]->Write();
+      h_ge_s3_cut[k]->Write();
+      
+      k++;
+    }
+  }
 
+  //
+  fo->Close();
   fi->Close();
 }

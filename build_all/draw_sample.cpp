@@ -241,4 +241,100 @@ void draw_sample(int run)
     leg6[i]->Draw("same");
     c2->SaveAs(TString::Format("./fig/%04d/c_s3_ring%02d_energy.png", run, i+1).Data());
   }
+
+  // ge spectra
+  map<int, int> map_ge_ring_sector = {
+    {1, 6},
+    {2, 8},
+    {3, 12},
+    {4, 8},
+    {5, 6}
+  };
+
+  TCanvas *c3 = new TCanvas("c3", "", 0, 0, 1000, 400);
+  c3->cd();
+  c3->SetLogy();
+
+  TH1D *h_ge_all, *h_ge_spider_all, *h_ge_s3_all, *h_ge_spider_cut_all, *h_ge_s3_cut_all;
+  h_ge_all = new TH1D("h_ge_all","",4096,0,4096);
+  h_ge_spider_all = new TH1D("h_ge_spider_all","",4096,0,4096);
+  h_ge_s3_all = new TH1D("h_ge_s3_all","",4096,0,4096);
+  h_ge_spider_cut_all = new TH1D("h_ge_spider_cut_all","",4096,0,4096);
+  h_ge_s3_cut_all = new TH1D("h_ge_s3_cut_all","",4096,0,4096);
+
+  TH1D *h_ge[40], *h_ge_spider[40], *h_ge_s3[40], *h_ge_spider_cut[40], *h_ge_s3_cut[40];
+  TLegend *leg7[40];
+
+  int k = 0;
+  for(int i=1;i<=5;i++){
+    for(int j=1;j<=map_ge_ring_sector[i];j++){
+      h_ge[k] = (TH1D*)fi->Get(TString::Format("h_ge_ring%d_sector%d",i,j));  
+      h_ge_spider[k] = (TH1D*)fi->Get(TString::Format("h_ge_ring%d_sector%d_spider",i,j));  
+      h_ge_s3[k] = (TH1D*)fi->Get(TString::Format("h_ge_ring%d_sector%d_s3",i,j));  
+      h_ge_spider_cut[k] = (TH1D*)fi->Get(TString::Format("h_ge_ring%d_sector%d_spider_cut",i,j));  
+      h_ge_s3_cut[k] = (TH1D*)fi->Get(TString::Format("h_ge_ring%d_sector%d_s3_cut",i,j));  
+
+      if(h_ge[k]->GetEntries()>0){
+        //
+        h_ge_all->Add(h_ge[k], 1);
+        h_ge_spider_all->Add(h_ge_spider[k], 1);
+        h_ge_s3_all->Add(h_ge_s3[k], 1);
+        h_ge_spider_cut_all->Add(h_ge_spider_cut[k], 1);
+        h_ge_s3_cut_all->Add(h_ge_s3_cut[k], 1);
+
+        leg7[k] = new TLegend(0.7, 0.4, 0.98, 0.95);
+        h_ge[k]->SetLineColor(colors[0]);
+        h_ge[k]->GetYaxis()->SetRangeUser(0.1, std::pow(10, std::ceil(std::log10(h_ge[k]->GetMaximum()))));
+        h_ge[k]->Draw();
+        leg7[k]->AddEntry(h_ge[k], h_ge[k]->GetName());
+
+        h_ge_spider[k]->SetLineColor(colors[1]);
+        h_ge_spider[k]->Draw("same");
+        leg7[k]->AddEntry(h_ge_spider[k], h_ge_spider[k]->GetName());
+
+        h_ge_s3[k]->SetLineColor(colors[2]);
+        h_ge_s3[k]->Draw("same");
+        leg7[k]->AddEntry(h_ge_s3[k], h_ge_s3[k]->GetName());
+
+        h_ge_spider_cut[k]->SetLineColor(colors[3]);
+        h_ge_spider_cut[k]->Draw("same");
+        leg7[k]->AddEntry(h_ge_spider_cut[k], h_ge_spider_cut[k]->GetName());
+
+        h_ge_s3_cut[k]->SetLineColor(colors[4]);
+        h_ge_s3_cut[k]->Draw("same");
+        leg7[k]->AddEntry(h_ge_s3_cut[k], h_ge_s3_cut[k]->GetName());
+
+        leg7[k]->Draw("same");
+        c3->SaveAs(TString::Format("./fig/%04d/c_ge_ring%d_sector%d.png",run,i,j).Data());
+      }
+      
+      k++;
+    }
+  }
+
+  TLegend *leg8 = new TLegend(0.7, 0.4, 0.98, 0.95);
+  h_ge_all->SetLineColor(colors[0]);
+  h_ge_all->GetYaxis()->SetRangeUser(0.1, std::pow(10, std::ceil(std::log10(h_ge_all->GetMaximum()))));
+  h_ge_all->Draw();
+  leg8->AddEntry(h_ge_all, h_ge_all->GetName());
+
+  h_ge_spider_all->SetLineColor(colors[1]);
+  h_ge_spider_all->Draw("same");
+  leg8->AddEntry(h_ge_spider_all, h_ge_spider_all->GetName());
+
+  h_ge_s3_all->SetLineColor(colors[2]);
+  h_ge_s3_all->Draw("same");
+  leg8->AddEntry(h_ge_s3_all, h_ge_s3_all->GetName());
+
+  h_ge_spider_cut_all->SetLineColor(colors[3]);
+  h_ge_spider_cut_all->Draw("same");
+  leg8->AddEntry(h_ge_spider_cut_all, h_ge_spider_cut_all->GetName());
+
+  h_ge_s3_cut_all->SetLineColor(colors[4]);
+  h_ge_s3_cut_all->Draw("same");
+  leg8->AddEntry(h_ge_s3_cut_all, h_ge_s3_cut_all->GetName());
+
+  leg8->Draw("same");
+  c3->SaveAs(TString::Format("./fig/%04d/c_ge_all.png",run).Data());
+
 }

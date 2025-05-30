@@ -126,7 +126,7 @@ void draw_sample(int run, int win)
   hh->Draw("colz");
   c2->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, hh->GetName()).Data());
 
-  // spider sector
+  // spider
   TH1D *h1[96];
 
   c2->SetLogy();
@@ -162,12 +162,12 @@ void draw_sample(int run, int win)
   for(int i=0;i<8;i++){
     leg3[i] = new TLegend(0.7, 0.4, 0.98, 0.95);
     for(int j=0;j<12;j++){
-      h1[i*8+j] = (TH1D*)fi->Get(TString::Format("h_spider_sector%02d_ring%02d_energy",j+1,i+1).Data());
-      h1[i*8+j]->SetLineColor(colors[j]);
-      if(j==0) h1[i*8+j]->Draw();
-      else h1[i*8+j]->Draw("same");
+      h1[i*12+j] = (TH1D*)fi->Get(TString::Format("h_spider_sector%02d_ring%02d_energy",j+1,i+1).Data());
+      h1[i*12+j]->SetLineColor(colors[j]);
+      if(j==0) h1[i*12+j]->Draw();
+      else h1[i*12+j]->Draw("same");
 
-      leg3[i]->AddEntry(h1[i*8+j], h1[i*8+j]->GetName());
+      leg3[i]->AddEntry(h1[i*12+j], h1[i*12+j]->GetName());
     }
     leg3[i]->Draw("same");
     c2->SaveAs(TString::Format("./fig/%dns/%04d/c_spider_ring%02d_energy.png", win, run, i+1).Data());
@@ -177,12 +177,12 @@ void draw_sample(int run, int win)
   for(int i=0;i<12;i++){
     leg4[i] = new TLegend(0.7, 0.4, 0.98, 0.95);
     for(int j=0;j<8;j++){
-      h1[i*12+j] = (TH1D*)fi->Get(TString::Format("h_spider_sector%02d_ring%02d_energy",i+1,j+1).Data());
-      h1[i*12+j]->SetLineColor(colors[j]);
-      if(j==0) h1[i*12+j]->Draw();
-      else h1[i*12+j]->Draw("same");
+      h1[i*8+j] = (TH1D*)fi->Get(TString::Format("h_spider_sector%02d_ring%02d_energy",i+1,j+1).Data());
+      h1[i*8+j]->SetLineColor(colors[j]);
+      if(j==0) h1[i*8+j]->Draw();
+      else h1[i*8+j]->Draw("same");
 
-      leg4[i]->AddEntry(h1[i*12+j], h1[i*12+j]->GetName());
+      leg4[i]->AddEntry(h1[i*8+j], h1[i*8+j]->GetName());
     }
     leg4[i]->Draw("same");
     c2->SaveAs(TString::Format("./fig/%dns/%04d/c_spider_sector%02d_energy.png", win, run, i+1).Data());
@@ -284,7 +284,7 @@ void draw_sample(int run, int win)
 
         leg7[k] = new TLegend(0.7, 0.4, 0.98, 0.95);
         h_ge[k]->SetLineColor(colors[0]);
-        h_ge[k]->GetYaxis()->SetRangeUser(0.1, std::pow(10, std::ceil(std::log10(h_ge[k]->GetMaximum()))));
+        h_ge[k]->GetYaxis()->SetRangeUser(1., std::pow(10, std::ceil(std::log10(h_ge[k]->GetMaximum()))));
         h_ge[k]->Draw();
         leg7[k]->AddEntry(h_ge[k], h_ge[k]->GetName());
 
@@ -314,7 +314,7 @@ void draw_sample(int run, int win)
 
   TLegend *leg8 = new TLegend(0.7, 0.4, 0.98, 0.95);
   h_ge_all->SetLineColor(colors[0]);
-  h_ge_all->GetYaxis()->SetRangeUser(0.1, std::pow(10, std::ceil(std::log10(h_ge_all->GetMaximum()))));
+  h_ge_all->GetYaxis()->SetRangeUser(1., std::pow(10, std::ceil(std::log10(h_ge_all->GetMaximum()))));
   h_ge_all->Draw();
   leg8->AddEntry(h_ge_all, h_ge_all->GetName());
 

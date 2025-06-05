@@ -23,7 +23,7 @@ build::build(const std::string &filename_in, const std::string &filename_out, in
   if(!InitMapSectorRingID()){
     throw std::invalid_argument("can not init ring and sector id data.");
   }
-  PrintMapSectorRingID();
+  // PrintMapSectorRingID();
 
   file_in = TFile::Open(filename_in.c_str());
   if(file_in->IsZombie()){
@@ -62,7 +62,7 @@ void build::Process()
   //
   GetGeSpiderS3Event("tr_event", 0, time_window);
   GetGeSpiderS3Event("tr_bg", time_jump, time_window+time_jump);
-  
+
   benchmark->Show("build");
 }
 
@@ -111,7 +111,7 @@ void build::GetGeSpiderS3Event(TString tr_name, double abs_time1, double abs_tim
 
   std::stringstream ss;
   ss.str("");
-  ss << "timewindow_" << TIMEWINDOW;
+  ss << "coincidence window [-" << abs_time2 << ", -" << abs_time1 << "] & [" << abs_time1 << ", " << abs_time2 << "]";
   TTree *tr = new TTree(tr_name.Data(), ss.str().c_str());
 
   //
@@ -220,15 +220,10 @@ void build::GetGeSpiderS3Event(TString tr_name, double abs_time1, double abs_tim
     while(true){//search backward
       if(i_current--==0) break;
       tr_in->GetEntry(i_current);
-      // std::cout << "info backward " << cid << " " << sid << " " << ch << " " << energy << " " << ts << std::endl;
-      // std::cout << "time diff " << abs(ts-ts1) << std::endl;
-
       if(cid==0 && evte<=cut_ge){//if Ge data and small energy
-        i_current--;
         continue;
       }
       if(cid==1 && evte<=cut_si){//if Si/S3 data and small energy
-        i_current--;
         continue;
       }
 
@@ -237,7 +232,19 @@ void build::GetGeSpiderS3Event(TString tr_name, double abs_time1, double abs_tim
       energy2 = evte;
       ts2 = ts;
     
-      if((abs(ts2-ts1))>=abs_time1 && abs(ts2-ts1)<=abs_time2){//this coincidence
+      if((abs(ts2-ts1))<abs_time1){//for background
+        if(cid==0){
+          ge_sid[n_ge] = sid2; 
+          ge_ch[n_ge] = ch2; 
+          ge_ring_id[n_ge] = map_ge_ring_id[100*sid2+ch2]; 
+          ge_sector_id[n_ge] = map_ge_sector_id[100*sid2+ch2]; 
+          ge_energy[n_ge] = energy2; 
+          ge_ts[n_ge] = ts2; 
+          n_ge++;
+        }else{
+          continue;
+        }
+      }else if((abs(ts2-ts1))>=abs_time1 && abs(ts2-ts1)<=abs_time2){//this coincidence
         if(cid==0){
           ge_sid[n_ge] = sid2; 
           ge_ch[n_ge] = ch2; 
@@ -297,9 +304,21 @@ void build::GetGeSpiderS3Event(TString tr_name, double abs_time1, double abs_tim
       energy2 = evte;
       ts2 = ts;
     
-      if((abs(ts2-ts1))>=abs_time1 && abs(ts2-ts1)<=abs_time2){//this coincidence
+      if((abs(ts2-ts1))<abs_time1){//for background
         i++;
-
+        if(cid==0){
+          ge_sid[n_ge] = sid2; 
+          ge_ch[n_ge] = ch2; 
+          ge_ring_id[n_ge] = map_ge_ring_id[100*sid2+ch2]; 
+          ge_sector_id[n_ge] = map_ge_sector_id[100*sid2+ch2]; 
+          ge_energy[n_ge] = energy2; 
+          ge_ts[n_ge] = ts2; 
+          n_ge++;
+        }else{
+          continue;
+        }
+      }else if((abs(ts2-ts1))>=abs_time1 && abs(ts2-ts1)<=abs_time2){//this coincidence
+        i++;
         if(cid==0){
           ge_sid[n_ge] = sid2; 
           ge_ch[n_ge] = ch2; 
@@ -423,10 +442,10 @@ bool build::InitMapSectorRingID()
     {209, 3},
     {210, 7},
     {211, 1},
-    {212, 1},
-    {213, 1},
-    {214, 1},
-    {215, 1},
+    {212, 2},
+    {213, 2},
+    {214, 2},
+    {215, 2},
 
     {304, 2},
     {305, 3},

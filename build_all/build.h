@@ -22,7 +22,8 @@ public:
 
   void Process();
 
-  void GetGeSpiderS3Event(TString tr_name, double abs_time1, double abs_time2);
+  void GetGeSpiderS3EventPrompt();
+  void GetGeSpiderS3EventRandom();
   void SaveFile();
 
 private:

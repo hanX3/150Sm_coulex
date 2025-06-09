@@ -77,19 +77,16 @@ void build::Process()
   benchmark->Start("build");
 
   //
-  double time_window = TIMEWINDOW;
-  double time_jump = TIMEJUMP;
-  //
-  GetGeSpiderS3Event("tr_event", 0, time_window);
-  GetGeSpiderS3Event("tr_bg", time_jump, time_window+time_jump);
+  GetGeSpiderS3EventPrompt();
+  GetGeSpiderS3EventRandom();
   
   benchmark->Show("build");
 }
 
 //
-void build::GetGeSpiderS3Event(TString tr_name, double abs_time1, double abs_time2)
+void build::GetGeSpiderS3EventPrompt()
 {
-  std::cout << "start get ge si data" << std::endl;
+  std::cout << "start get ge si prompt events" << std::endl;
 
   int n_max_ge = GENUM;
   int n_max_spider = SPIDERNUM;
@@ -98,6 +95,8 @@ void build::GetGeSpiderS3Event(TString tr_name, double abs_time1, double abs_tim
 
   double cut_ge = CUTGE; 
   double cut_si = CUTSI;
+
+  double t_win = TIMEWINDOW;
 
   //
   Int_t n_ge = 0;
@@ -127,8 +126,8 @@ void build::GetGeSpiderS3Event(TString tr_name, double abs_time1, double abs_tim
 
   std::stringstream ss;
   ss.str("");
-  ss << "timewindow_" << TIMEWINDOW;
-  TTree *tr = new TTree(tr_name.Data(), ss.str().c_str());
+  ss << "coincidence window [-" << t_win << ", " << t_win << "] ns";
+  TTree *tr = new TTree("tr_event", ss.str().c_str());
 
   //
   memset(ge_sid, 0, sizeof(ge_sid));
@@ -196,7 +195,7 @@ void build::GetGeSpiderS3Event(TString tr_name, double abs_time1, double abs_tim
   while(true){//get first Ge data
     tr_in->GetEntry(i_start);
     energy = GetEnergy();
-    ts_ns = GetTSns();
+    ts_ns = GetTsns();
     i_start++;
     if(cid==0 && energy>cut_ge){
       break;
@@ -211,7 +210,7 @@ void build::GetGeSpiderS3Event(TString tr_name, double abs_time1, double abs_tim
 
     tr_in->GetEntry(i_current);
     energy = GetEnergy();
-    ts_ns = GetTSns();
+    ts_ns = GetTsns();
 
     sid1 = sid;
     ch1 = ch;
@@ -231,16 +230,14 @@ void build::GetGeSpiderS3Event(TString tr_name, double abs_time1, double abs_tim
       if(i_current--==0) break;
       tr_in->GetEntry(i_current);
       energy = GetEnergy();
-      ts_ns = GetTSns();
+      ts_ns = GetTsns();
       // std::cout << "info backward " << cid << " " << sid << " " << ch << " " << energy << " " << ts << std::endl;
       // std::cout << "time diff " << abs(ts-ts1) << std::endl;
 
       if(cid==0 && energy<=cut_ge){//if Ge data and small energy
-        i_current--;
         continue;
       }
       if(cid==1 && energy<=cut_si){//if Si/S3 data and small energy
-        i_current--;
         continue;
       }
 
@@ -249,7 +246,7 @@ void build::GetGeSpiderS3Event(TString tr_name, double abs_time1, double abs_tim
       energy2 = energy;
       ts2 = ts_ns;
     
-      if((abs(ts2-ts1))>=abs_time1 && abs(ts2-ts1)<=abs_time2){//this coincidence
+      if((abs(ts2-ts1))<=t_win){//this coincidence
         if(cid==0){
           ge_sid[n_ge] = sid2; 
           ge_ch[n_ge] = ch2; 
@@ -289,7 +286,7 @@ void build::GetGeSpiderS3Event(TString tr_name, double abs_time1, double abs_tim
       if(i>=tr_in->GetEntries()) break;
       tr_in->GetEntry(i);
       energy = GetEnergy();
-      ts_ns = GetTSns();
+      ts_ns = GetTsns();
       // std::cout << "info forward " << cid << " " << sid << " " << ch << " " << energy << " " << ts << std::endl;
       // std::cout << "time diff " << abs(ts-ts1) << std::endl;
 
@@ -307,9 +304,8 @@ void build::GetGeSpiderS3Event(TString tr_name, double abs_time1, double abs_tim
       energy2 = energy;
       ts2 = ts_ns;
     
-      if((abs(ts2-ts1))>=abs_time1 && abs(ts2-ts1)<=abs_time2){//this coincidence
+      if((abs(ts2-ts1))<=t_win){//this coincidence
         i++;
-
         if(cid==0){
           ge_sid[n_ge] = sid2; 
           ge_ch[n_ge] = ch2; 
@@ -345,11 +341,10 @@ void build::GetGeSpiderS3Event(TString tr_name, double abs_time1, double abs_tim
       }else break;
     } // while search forward
 
-
     // std::cout << "n_ge " << n_ge << std::endl;
     // std::cout << " n_spider " << n_spider << std::endl;
     // std::cout << " n_s3_sector " << n_s3_sector << " n_s3_ring " << n_s3_ring << std::endl;
-    if(n_ge > 0){
+    if(n_ge*(n_spider+n_s3_sector+n_s3_ring) > 0){
       n_evt++;
 
       file_out->cd();
@@ -391,7 +386,7 @@ void build::GetGeSpiderS3Event(TString tr_name, double abs_time1, double abs_tim
       if(i>=tr_in->GetEntries()) break;
       tr_in->GetEntry(i);
       energy = GetEnergy();
-      ts_ns = GetTSns();
+      ts_ns = GetTsns();
       i++;
       if(cid==0 && energy>cut_ge){
         break;
@@ -407,6 +402,341 @@ void build::GetGeSpiderS3Event(TString tr_name, double abs_time1, double abs_tim
   tr->Write();
 }
 
+
+//
+void build::GetGeSpiderS3EventRandom()
+{
+  std::cout << "start get ge si random events" << std::endl;
+
+  int n_max_ge = GENUM;
+  int n_max_spider = SPIDERNUM;
+  int n_max_s3_sector = S3SECTORNUM;
+  int n_max_s3_ring = S3RINGNUM;
+
+  double cut_ge = CUTGE; 
+  double cut_si = CUTSI;
+
+  double t_prompt = (TIMEWINDOW>TIMEJUMP) ? TIMEJUMP : TIMEWINDOW;
+  double t_min_rand = TIMEJUMP;
+  double t_max_rand = TIMEJUMP+TIMEWINDOW;
+
+  //
+  Int_t n_ge = 0;
+  Short_t ge_sid[n_max_ge];
+  Short_t ge_ch[n_max_ge];
+  Double_t ge_energy[n_max_ge];
+  Long64_t ge_ts[n_max_ge];
+
+  Int_t n_spider = 0;
+  Short_t spider_sid[n_max_spider];
+  Short_t spider_ch[n_max_spider];
+  Double_t spider_energy[n_max_spider];
+  Long64_t spider_ts[n_max_spider];
+
+  Int_t n_s3_sector = 0;
+  Short_t s3_sector_sid[n_max_s3_sector];
+  Short_t s3_sector_ch[n_max_s3_sector];
+  Short_t s3_sector_id[n_max_s3_sector];
+  Double_t s3_sector_energy[n_max_s3_sector];
+  Long64_t s3_sector_ts[n_max_s3_sector];
+  Int_t n_s3_ring = 0;
+  Short_t s3_ring_sid[n_max_s3_ring];
+  Short_t s3_ring_ch[n_max_s3_ring];
+  Short_t s3_ring_id[n_max_s3_ring];
+  Double_t s3_ring_energy[n_max_s3_ring];
+  Long64_t s3_ring_ts[n_max_s3_ring];
+
+  std::stringstream ss;
+  ss.str("");
+  ss << "random coincidence window [" << t_min_rand << ", " << t_max_rand << "] ns" ;
+  TTree *tr = new TTree("tr_bg", ss.str().c_str());
+
+  //
+  memset(ge_sid, 0, sizeof(ge_sid));
+  memset(ge_ch, 0, sizeof(ge_ch));
+  memset(ge_energy, 0, sizeof(ge_energy));
+  memset(ge_ts, 0, sizeof(ge_ts));
+
+  memset(spider_sid, 0, sizeof(spider_sid));
+  memset(spider_ch, 0, sizeof(spider_ch));
+  memset(spider_energy, 0, sizeof(spider_energy));
+  memset(spider_ts, 0, sizeof(spider_ts));
+
+  memset(s3_sector_sid, 0, sizeof(s3_sector_sid));
+  memset(s3_sector_ch, 0, sizeof(s3_sector_ch));
+  memset(s3_sector_id, 0, sizeof(s3_sector_id));
+  memset(s3_sector_energy, 0, sizeof(s3_sector_energy));
+  memset(s3_sector_ts, 0, sizeof(s3_sector_ts));
+
+  memset(s3_ring_sid, 0, sizeof(s3_ring_sid));
+  memset(s3_ring_ch, 0, sizeof(s3_ring_ch));
+  memset(s3_ring_id, 0, sizeof(s3_ring_id));
+  memset(s3_ring_energy, 0, sizeof(s3_ring_energy));
+  memset(s3_ring_ts, 0, sizeof(s3_ring_ts));
+
+  //
+  tr->Branch("n_ge", &n_ge, "n_ge/I");
+  tr->Branch("ge_sid", ge_sid, "ge_sid[n_ge]/S");
+  tr->Branch("ge_ch", ge_ch, "ge_ch[n_ge]/S");
+  tr->Branch("ge_energy", ge_energy, "ge_energy[n_ge]/D");
+  tr->Branch("ge_ts", ge_ts, "ge_ts[n_ge]/L");
+
+  tr->Branch("n_spider", &n_spider, "n_spider/I");
+  tr->Branch("spider_sid", spider_sid, "spider_sid[n_spider]/S");
+  tr->Branch("spider_ch", spider_ch, "spider_ch[n_spider]/S");
+  tr->Branch("spider_energy", spider_energy, "spider_energy[n_spider]/D");
+  tr->Branch("spider_ts", spider_ts, "spider_ts[n_spider]/L");
+  
+  tr->Branch("n_s3_sector", &n_s3_sector, "n_s3_sector/I");
+  tr->Branch("s3_sector_sid", s3_sector_sid, "s3_sector_sid[n_s3_sector]/S");
+  tr->Branch("s3_sector_ch", s3_sector_ch, "s3_sector_ch[n_s3_sector]/S");
+  tr->Branch("s3_sector_id", s3_sector_id, "s3_sector_id[n_s3_sector]/S");
+  tr->Branch("s3_sector_energy", s3_sector_energy, "s3_sector_energy[n_s3_sector]/D");
+  tr->Branch("s3_sector_ts", s3_sector_ts, "s3_sector_ts[n_s3_sector]/L");
+
+  tr->Branch("n_s3_ring", &n_s3_ring, "n_s3_ring/I");
+  tr->Branch("s3_ring_sid", s3_ring_sid, "s3_ring_sid[n_s3_ring]/S");
+  tr->Branch("s3_ring_ch", s3_ring_ch, "s3_ring_ch[n_s3_ring]/S");
+  tr->Branch("s3_ring_id", s3_ring_id, "s3_ring_id[n_s3_ring]/S");
+  tr->Branch("s3_ring_energy", s3_ring_energy, "s3_ring_energy[n_s3_ring]/D");
+  tr->Branch("s3_ring_ts", s3_ring_ts, "s3_ring_ts[n_s3_ring]/L");
+  
+  //
+  Long64_t i_start = 0;
+
+  Short_t sid1 = 0;
+  Short_t ch1 = 0;
+  Double_t energy1 = 0;
+  Long64_t ts1 = 0;
+  
+  Short_t sid2 = 0;
+  Short_t ch2 = 0;
+  Double_t energy2 = 0;
+  Long64_t ts2 = 0;
+
+  while(true){//get first Ge data
+    tr_in->GetEntry(i_start);
+    energy = GetEnergy();
+    ts_ns = GetTsns();
+    i_start++;
+    if(cid==0 && energy>cut_ge){
+      break;
+    }
+  }
+  
+  Long64_t n_evt = 0;
+  Long64_t i = i_start;
+  Long64_t i_current = i-1;
+  while(true){
+    if(i==tr_in->GetEntries()) break;
+
+    tr_in->GetEntry(i_current);
+    energy = GetEnergy();
+    ts_ns = GetTsns();
+
+    sid1 = sid;
+    ch1 = ch;
+    energy1 = energy;
+    ts1 = ts_ns;
+
+    ge_sid[n_ge] = sid1;
+    ge_ch[n_ge] = ch1; 
+    ge_energy[n_ge] = energy1; 
+    ge_ts[n_ge] = ts1; 
+    n_ge++;
+
+    // std::cout << std::endl;
+    // std::cout << "info ge " << cid << " " << sid << " " << ch << " " << energy << " " << ts << std::endl;
+
+    while(true){//search backward
+      if(i_current--==0) break;
+      tr_in->GetEntry(i_current);
+      energy = GetEnergy();
+      ts_ns = GetTsns();
+      // std::cout << "info backward " << cid << " " << sid << " " << ch << " " << energy << " " << ts << std::endl;
+      // std::cout << "time diff " << abs(ts-ts1) << std::endl;
+
+      if(cid==0 && energy<=cut_ge){//if Ge data and small energy
+        continue;
+      }
+      if(cid==1 && energy<=cut_si){//if Si/S3 data and small energy
+        continue;
+      }
+
+      sid2 = sid;
+      ch2 = ch;
+      energy2 = energy;
+      ts2 = ts_ns;
+    
+      if(abs(ts2-ts1)<=t_prompt){//for ge coincidence
+        if(cid==0){
+          ge_sid[n_ge] = sid2;
+          ge_ch[n_ge] = ch2;
+          ge_energy[n_ge] = energy2;
+          ge_ts[n_ge] = ts2;
+          n_ge++;
+        }else{
+          continue;
+        }
+      }
+      else if(abs(ts2-ts1)>t_prompt && abs(ts2-ts1)<t_min_rand) continue;
+      else if((abs(ts2-ts1))>=t_min_rand && abs(ts2-ts1)<=t_max_rand){//this coincidence
+        if(cid==1){
+          if(!(std::find(v_s3_sid.begin(),v_s3_sid.end(),sid) != v_s3_sid.end())){// spider data
+            spider_sid[n_spider] = sid2;
+            spider_ch[n_spider] = ch2;
+            spider_energy[n_spider] = energy2;
+            spider_ts[n_spider] = ts2;
+            n_spider++;
+          }else{
+            if(sid>=11&&sid<=12){
+              s3_ring_sid[n_s3_ring] = sid2;
+              s3_ring_ch[n_s3_ring] = ch2;
+              s3_ring_id[n_s3_ring] = map_s3_ring_id[10000*cid+100*sid+ch];
+              s3_ring_energy[n_s3_ring] = energy2;
+              s3_ring_ts[n_s3_ring] = ts2;
+              n_s3_ring++;
+            }else{
+              s3_sector_sid[n_s3_sector] = sid2;
+              s3_sector_ch[n_s3_sector] = ch2;
+              s3_sector_id[n_s3_sector] = map_s3_sector_id[10000*cid+100*sid+ch];
+              s3_sector_energy[n_s3_sector] = energy2;
+              s3_sector_ts[n_s3_sector] = ts2;
+              n_s3_sector++;
+            }
+          }
+        }else continue;
+      }else break;
+    }//while search backward
+
+    while(true){//search forward
+      if(i>=tr_in->GetEntries()) break;
+      tr_in->GetEntry(i);
+      energy = GetEnergy();
+      ts_ns = GetTsns();
+      // std::cout << "info forward " << cid << " " << sid << " " << ch << " " << energy << " " << ts << std::endl;
+      // std::cout << "time diff " << abs(ts-ts1) << std::endl;
+
+      if(cid==0 && energy<=cut_ge){//if ge data and small energy
+        i++;
+        continue;
+      }
+      if(cid==1 && energy<=cut_si){//if si data and small energy
+        i++;
+        continue;
+      }
+
+      sid2 = sid;
+      ch2 = ch;
+      energy2 = energy;
+      ts2 = ts_ns;
+
+      if((abs(ts2-ts1))<=t_prompt){//for ge coincidence
+        i++;
+        if(cid==0){
+          ge_sid[n_ge] = sid2;
+          ge_ch[n_ge] = ch2;
+          ge_energy[n_ge] = energy2;
+          ge_ts[n_ge] = ts2;
+          n_ge++;
+        }else{
+          continue;
+        }
+      }
+      else if(abs(ts2-ts1)>t_prompt && abs(ts2-ts1)<t_min_rand){
+        i++;
+        continue;
+      }
+      else if((abs(ts2-ts1))>=t_min_rand && abs(ts2-ts1)<=t_max_rand){//this coincidence      
+        i++;
+        if(cid==1){
+          if(!(std::find(v_s3_sid.begin(),v_s3_sid.end(),sid) != v_s3_sid.end())){// spider data
+            spider_sid[n_spider] = sid2;
+            spider_ch[n_spider] = ch2;
+            spider_energy[n_spider] = energy2;
+            spider_ts[n_spider] = ts2;
+            n_spider++;
+          }else{
+            if(sid>=11&&sid<=12){
+              s3_ring_sid[n_s3_ring] = sid2;
+              s3_ring_ch[n_s3_ring] = ch2;
+              s3_ring_id[n_s3_ring] = map_s3_ring_id[10000*cid+100*sid+ch];
+              s3_ring_energy[n_s3_ring] = energy2;
+              s3_ring_ts[n_s3_ring] = ts2;
+              n_s3_ring++;
+            }else{
+              s3_sector_sid[n_s3_sector] = sid2;
+              s3_sector_ch[n_s3_sector] = ch2;
+              s3_sector_id[n_s3_sector] = map_s3_sector_id[10000*cid+100*sid+ch];
+              s3_sector_energy[n_s3_sector] = energy2;
+              s3_sector_ts[n_s3_sector] = ts2;
+              n_s3_sector++;
+            }
+          }
+        }else continue;
+      }else break;
+    } // while search forward
+
+    // std::cout << "n_ge " << n_ge << std::endl;
+    // std::cout << " n_spider " << n_spider << std::endl;
+    // std::cout << " n_s3_sector " << n_s3_sector << " n_s3_ring " << n_s3_ring << std::endl;
+    if(n_ge*(n_spider+n_s3_sector+n_s3_ring) > 0){
+      n_evt++;
+
+      file_out->cd();
+      tr->Fill();
+
+      if(n_evt%10000==0){
+        std::cout << "\r" << n_evt << "  " << i << "/" << tr_in->GetEntries();
+        std::cout << std::flush;
+      }
+    }
+
+    n_ge = 0;
+    memset(ge_sid, 0, sizeof(ge_sid));
+    memset(ge_ch, 0, sizeof(ge_ch));
+    memset(ge_energy, 0, sizeof(ge_energy));
+    memset(ge_ts, 0, sizeof(ge_ts));
+
+    n_spider = 0;
+    memset(spider_sid, 0, sizeof(spider_sid));
+    memset(spider_ch, 0, sizeof(spider_ch));
+    memset(spider_energy, 0, sizeof(spider_energy));
+    memset(spider_ts, 0, sizeof(spider_ts));
+
+    n_s3_sector = 0;
+    memset(s3_sector_sid, 0, sizeof(s3_sector_sid));
+    memset(s3_sector_ch, 0, sizeof(s3_sector_ch));
+    memset(s3_sector_id, 0, sizeof(s3_sector_id));
+    memset(s3_sector_energy, 0, sizeof(s3_sector_energy));
+    memset(s3_sector_ts, 0, sizeof(s3_sector_ts));
+
+    n_s3_ring = 0;
+    memset(s3_ring_sid, 0, sizeof(s3_ring_sid));
+    memset(s3_ring_ch, 0, sizeof(s3_ring_ch));
+    memset(s3_ring_id, 0, sizeof(s3_ring_id));
+    memset(s3_ring_energy, 0, sizeof(s3_ring_energy));
+    memset(s3_ring_ts, 0, sizeof(s3_ring_ts));
+
+    while(true){//get next Ge data
+      if(i>=tr_in->GetEntries()) break;
+      tr_in->GetEntry(i);
+      energy = GetEnergy();
+      ts_ns = GetTsns();
+      i++;
+      if(cid==0 && energy>cut_ge){
+        break;
+      }
+    }
+    i_current = i-1;
+
+  }//while
+
+  std::cout << std::endl;
+
+  file_out->cd();
+  tr->Write();
+}
 //
 double build::GetEnergy()
 {
@@ -438,8 +768,10 @@ double build::GetEnergy()
 }
 
 //
-Long64_t build::GetTSns()
+Long64_t build::GetTsns()
 {
+  int key = 10000*cid+100*sid+ch;
+
   Long64_t ts_ns = 0;
   if(cid==0){
     if(cfdft){
@@ -447,15 +779,17 @@ Long64_t build::GetTSns()
     }else{
       ts_ns = (ts*2-cfds+cfd/16384.)*4.;
     }
+
+    ts_ns += map_ts_offset[key];
   }
 
   if(cid==1){
     if(sr==250) ts_ns = ts*8;
     if(sr==100) ts_ns = ts*10; 
-  }
 
-  int key = 10000*cid+100*sid+ch;
-  ts_ns += map_ts_offset[key];
+    ts_ns += map_ts_offset[key];
+    ts_ns += rndm->Uniform(-5,5);
+  }
 
   return ts_ns;
 }

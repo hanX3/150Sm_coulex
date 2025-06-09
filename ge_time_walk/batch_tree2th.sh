@@ -10,5 +10,5 @@ while read run; do
   while (( $(jobs -p | wc -l) >= $max_jobs )); do
     wait -n
   done
-done < "run.txt"
+done < "run_472_605.txt"
 

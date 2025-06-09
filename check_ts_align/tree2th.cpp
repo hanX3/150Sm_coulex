@@ -1,23 +1,19 @@
 #include "set.h" 
 
 //
-void tree2th(TString str, int run=0)
+void tree2th(int run)
 {
   TRandom3 *rndm = new TRandom3((Long64_t)time(0)); 
 
   TFile *fi;
 
-  if(run==0){
-    fi = TFile::Open("../rootfile/data_ge_tw_500ns.root");
-  }else{
-    fi = TFile::Open(TString::Format("../rootfile/data%04d_align_500ns.root", run).Data());
-  }
+  fi = TFile::Open(TString::Format("../rootfile/data%04d_align_%dns_%s.root", run, TIMEWINDOW, TF).Data());
   if(fi->IsZombie()){
     cout << "can not open rootfile." << endl;
     return;
   }
 
-  TFile *fo = new TFile(TString::Format("../rootfile/data%04d_align_ts_diff_%s.root", run, str.Data()).Data(), "recreate");
+  TFile *fo = new TFile(TString::Format("../rootfile/data%04d_align_th2d_event_%s.root", run, TF).Data(), "recreate");
 
   int n_max_ge = GENUM;
   int n_max_spider = SPIDERNUM;
@@ -27,9 +23,9 @@ void tree2th(TString str, int run=0)
   double cut_ge_min = 50.; 
   double cut_ge_max = 4096.; 
   double cut_spider_min = 2000;
-  double cut_spider_max = 10000;
+  double cut_spider_max = 20000;
   double cut_s3_min = 2000;
-  double cut_s3_max = 10000;
+  double cut_s3_max = 30000;
   
   //
   Int_t n_ge = 0;
@@ -58,7 +54,7 @@ void tree2th(TString str, int run=0)
   Long64_t s3_ring_ts[n_max_s3_ring];
   
   //
-  TTree *tr = (TTree*)fi->Get(TString::Format("tr_%s", str.Data()).Data()); 
+  TTree *tr = (TTree*)fi->Get("tr_event"); 
 
   tr->SetBranchAddress("n_ge", &n_ge);
   tr->SetBranchAddress("ge_sid", ge_sid);
@@ -86,30 +82,21 @@ void tree2th(TString str, int run=0)
   tr->SetBranchAddress("s3_ring_energy", s3_ring_energy);
   tr->SetBranchAddress("s3_ring_ts", s3_ring_ts);
 
-  TH2D *hhpg = new TH2D("hhpg", "", 200,-500,500,1024,0,4096);
+  TH2D *hhpg = new TH2D("hhpg", "", 150,-1500,1500,1024,0,4096);
 
   TH2D *hh_spider[n_max_ge], *hh_s3[n_max_ge];
   for(int i=2;i<=5;i++){
     for(int j=0;j<16;j++){
-      hh_spider[(i-2)*16+j] = new TH2D(TString::Format("hh_spider_ge_sid%d_ch%02d",i,j).Data(), "", 200,-500,500,1024,0,4096);
-      hh_s3[(i-2)*16+j] = new TH2D(TString::Format("hh_s3_ge_sid%d_ch%02d",i,j).Data(), "", 200,-500,500,1024,0,4096);
+      hh_spider[(i-2)*16+j] = new TH2D(TString::Format("hh_spider_ge_sid%d_ch%02d",i,j).Data(), "", 150,-1500,1500,1024,0,4096);
+      hh_s3[(i-2)*16+j] = new TH2D(TString::Format("hh_s3_ge_sid%d_ch%02d",i,j).Data(), "", 150,-1500,1500,1024,0,4096);
     }
   }
 
-  TH3I *hhh_spider_all = new TH3I("hhh_spider_all", "", 200,-500,500,256,0,1024,600,0,60000);
-  TH3I *hhh_spider[n_max_ge], *hhh_s3[n_max_ge];
-  for(int i=2;i<=5;i++){
-    for(int j=0;j<16;j++){
-      // hhh_spider[(i-2)*16+j] = new TH3I(TString::Format("hhh_spider_ge_sid%d_ch%02d",i,j).Data(), "", 200,-500,500,256,0,1024,600,0,60000);
-      // hhh_s3[(i-2)*16+j] = new TH3I(TString::Format("hhh_s3_ge_sid%d_ch%02d",i,j).Data(), "", 200,-500,500,256,0,1024,600,0,60000);
-    }
-  }
-
-  TH1D *hpg = new TH1D("hpg", "", 200,-500,500);
-  TH1D *hgg = new TH1D("hgg", "", 200,-500,500);
-  TH1D *hpp_spider = new TH1D("hpp_spider", "", 200,-500,500);
-  TH1D *hpp_s3 = new TH1D("hpp_s3", "", 200,-500,500);
-  TH1D *hpp_si = new TH1D("hpp_si", "", 200,-500,500);
+  TH1D *hpg = new TH1D("hpg", "", 150,-1500,1500);
+  TH1D *hgg = new TH1D("hgg", "", 150,-1500,1500);
+  TH1D *hpp_spider = new TH1D("hpp_spider", "", 150,-1500,1500);
+  TH1D *hpp_s3 = new TH1D("hpp_s3", "", 150,-1500,1500);
+  TH1D *hpp_si = new TH1D("hpp_si", "", 150,-1500,1500);
 
   //
   vector<Long64_t> v_ge_ts;
@@ -119,6 +106,7 @@ void tree2th(TString str, int run=0)
   vector<Long64_t> v_s3_ts;
   vector<Long64_t> v_si_ts;
 
+  bool flag_ge = 0;
   bool flag_spider = 0;
   bool flag_s3 = 0;
   //
@@ -131,6 +119,7 @@ void tree2th(TString str, int run=0)
     v_s3_ring_ts.clear();
     v_s3_ts.clear();
     v_si_ts.clear();
+    flag_ge = 0;
     flag_spider = 0;
     flag_s3 = 0;
 
@@ -158,41 +147,40 @@ void tree2th(TString str, int run=0)
     v_si_ts.insert(v_si_ts.end(), v_s3_ts.begin(), v_s3_ts.end());
 
     //
+    if(v_ge_ts.size()==1) flag_ge = 1;
     if(v_spider_ts.size()>0) flag_spider = 1;
     if(v_s3_ts.size()>0) flag_s3 = 1;
 
     //
-    if(flag_spider){
-      for(int j=0;j<n_ge;j++){  
-        for(int jj=0;jj<v_spider_ts.size();jj++){
-          if(ge_sid[j]==2 && ge_ch[j]>11 && ge_ch[j]<16) hpg->Fill(v_spider_ts[jj]-ge_ts[j]);
-          hh_spider[(ge_sid[j]-2)*16+ge_ch[j]]->Fill(v_spider_ts[jj]-ge_ts[j], ge_energy[j]);
-          
-          hhpg->Fill(v_spider_ts[jj]-ge_ts[j], ge_energy[j]);
-
-          // hhh_spider_all->Fill(v_spider_ts[jj]-ge_ts[j], ge_energy[j], spider_energy[jj]);
-          // hhh_spider[(ge_sid[j]-2)*16+ge_ch[j]]->Fill(v_spider_ts[jj]-ge_ts[j], ge_energy[j], spider_energy[jj]);
-        }
+    if(flag_ge && flag_spider){
+      int j=0;
+      int min = abs(v_spider_ts[0]-v_ge_ts[0]);
+      for(int jj=1;jj<v_spider_ts.size();jj++){
+        int min_temp = abs(v_spider_ts[jj]-v_ge_ts[0]);
+        if(min_temp<min){
+          j = jj;
+          min = min_temp;
+        }else continue;
       }
+      
+      hpg->Fill(v_spider_ts[j]-v_ge_ts[0]);
+      hh_spider[(ge_sid[0]-2)*16+ge_ch[0]]->Fill(v_spider_ts[j]-v_ge_ts[0], ge_energy[0]);
+      hhpg->Fill(v_spider_ts[j]-v_ge_ts[0], ge_energy[0]);
     }
 
-    /*
-    if(flag_s3){
-      for(int j=0;j<n_ge;j++){
-        for(int jj=0;jj<v_s3_ring_ts.size();jj++){
-          hh_s3[(ge_sid[j]-2)*16+ge_ch[j]]->Fill(v_s3_ring_ts[jj]-ge_ts[j], ge_energy[j]);
-          hhh_s3[(ge_sid[j]-2)*16+ge_ch[j]]->Fill(v_s3_ring_ts[jj]-ge_ts[j], ge_energy[j], s3_ring_energy[jj]);
-        }
+    if(flag_ge && flag_s3){
+      int j=0;
+      int min = abs(v_s3_ts[0]-v_ge_ts[0]);
+      for(int jj=1;jj<v_s3_ts.size();jj++){
+        int min_temp = abs(v_s3_ts[jj]-v_ge_ts[0]);
+        if(min_temp<min){
+          j = jj;
+          min = min_temp;
+        }else continue;
       }
 
-      for(int j=0;j<n_ge;j++){
-        for(int jj=0;jj<v_s3_sector_ts.size();jj++){
-          hh_s3[(ge_sid[j]-2)*16+ge_ch[j]]->Fill(v_s3_sector_ts[jj]-ge_ts[j], ge_energy[j]);
-          hhh_s3[(ge_sid[j]-2)*16+ge_ch[j]]->Fill(v_s3_sector_ts[jj]-ge_ts[j], ge_energy[j], s3_sector_energy[jj]);
-        }
-      }
+      hh_s3[(ge_sid[0]-2)*16+ge_ch[0]]->Fill(v_s3_ts[j]-v_ge_ts[0], ge_energy[0]);
     }
-    */
 
     //
     if(n_ge>1){
@@ -248,17 +236,14 @@ void tree2th(TString str, int run=0)
   hpp_spider->Write();
   hpp_s3->Write();
   hpp_si->Write();
-  // hhh_spider_all->Write();
   
   hhpg->Write();
 
   for(int i=2;i<=5;i++){
     for(int j=0;j<16;j++){
       hh_spider[(i-2)*16+j]->Write();
-      // hhh_spider[(i-2)*16+j]->Write();
 
       hh_s3[(i-2)*16+j]->Write();
-      // hhh_s3[(i-2)*16+j]->Write();
     }
   }
   fo->Close();

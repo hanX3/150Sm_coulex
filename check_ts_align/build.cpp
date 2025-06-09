@@ -771,10 +771,10 @@ double build::GetEnergy()
     energy = map_cali_data[key][0]+evte*map_cali_data[key][1]+evte*evte*map_cali_data[key][2]+rndm->Uniform(-5.,5.);
 
     if(map_s3_sector_id.find(key)!=map_s3_sector_id.end()){
-      energy = map_s3_sector_cor_data[map_s3_sector_id[key]][0]+evte*map_s3_sector_cor_data[map_s3_sector_id[key]][1];
+      energy = map_s3_sector_cor_data[map_s3_sector_id[key]][0]+energy*map_s3_sector_cor_data[map_s3_sector_id[key]][1];
     }
     if(map_s3_ring_id.find(key)!=map_s3_ring_id.end()){
-      energy = map_s3_ring_cor_data[map_s3_ring_id[key]][0]+evte*map_s3_ring_cor_data[map_s3_ring_id[key]][1];
+      energy = map_s3_ring_cor_data[map_s3_ring_id[key]][0]+energy*map_s3_ring_cor_data[map_s3_ring_id[key]][1];
     }
   }
 

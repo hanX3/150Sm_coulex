@@ -22,7 +22,7 @@ int main(int argc, char const *argv[])
   TString file_in = TString::Format("../rootfile/data_C2_%04d_%04d.root", run, run);
   std::cout << "analysis " << file_in << std::endl;
   
-  TString file_out = TString::Format("../rootfile/data%04d_align_%dns.root", run, TIMEWINDOW);
+  TString file_out = TString::Format("../rootfile/data%04d_align_%dns_%s.root", run, TIMEWINDOW, TF);
 
   TStopwatch timer;
   timer.Start();

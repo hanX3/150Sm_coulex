@@ -40,7 +40,7 @@ void draw_sample()
       hh[k]->Draw("colz");
 
       c3[k]->cd();
-      h[k] = (TH1D*)hh[k]->ProjectionX(TString::Format("sid%d_ch%02d"), 0, 1024);
+      h[k] = (TH1D*)hh[k]->ProjectionX(TString::Format("sid%d_ch%02d",i,j), 20, 200);
       h[k]->Draw();
 
       c3[k]->SaveAs(TString::Format("./fig/c3_%s.png",h[k]->GetName()).Data());

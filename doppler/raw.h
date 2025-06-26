@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Fri May 16 17:47:51 2025 by ROOT version 6.22/08
+// Fri Jun 20 17:07:04 2025 by ROOT version 6.32.12
 // from TTree tr_event/event doppler data
-// found on file: ../rootfile/data0550_doppler_200ns_d.root
+// found on file: ../rootfile/data0472_doppler_250ns_jump_250ns_e.root
 //////////////////////////////////////////////////////////
 
 #ifndef raw_h
@@ -23,30 +23,36 @@ public :
 
    // Declaration of leaf types
    Int_t           hits;
-   Int_t           who;
+   Bool_t          flag_spider_p;
+   Bool_t          flag_spider_r;
+   Bool_t          flag_s3_p;
+   Bool_t          flag_s3_r;
    Int_t           rp;
    Int_t           sp;
    Int_t           rr;
    Int_t           sr;
-   Int_t           rg[5];   //[hits]
-   Int_t           sg[5];   //[hits]
-   Double_t        e_raw[5];   //[hits]
-   Double_t        e_dc_p[5];   //[hits]
-   Double_t        e_dc_r[5];   //[hits]
-   Double_t        e_dc_p_10fs[5];   //[hits]
-   Double_t        e_dc_r_10fs[5];   //[hits]
-   Double_t        e_dc_p_100fs[5];   //[hits]
-   Double_t        e_dc_r_100fs[5];   //[hits]
-   Double_t        e_dc_p_1000fs[5];   //[hits]
-   Double_t        e_dc_r_1000fs[5];   //[hits]
+   Int_t           rg[4];   //[hits]
+   Int_t           sg[4];   //[hits]
+   Double_t        e_raw[4];   //[hits]
+   Double_t        e_dc_p[4];   //[hits]
+   Double_t        e_dc_r[4];   //[hits]
+   Double_t        e_dc_p_10fs[4];   //[hits]
+   Double_t        e_dc_r_10fs[4];   //[hits]
+   Double_t        e_dc_p_100fs[4];   //[hits]
+   Double_t        e_dc_r_100fs[4];   //[hits]
+   Double_t        e_dc_p_1000fs[4];   //[hits]
+   Double_t        e_dc_r_1000fs[4];   //[hits]
 
    // List of branches
    TBranch        *b_hits;   //!
-   TBranch        *b_who;   //!
+   TBranch        *b_flag_spider_p;   //!
+   TBranch        *b_flag_spider_r;   //!
+   TBranch        *b_flag_s3_p;   //!
+   TBranch        *b_flag_s3_r;   //!
    TBranch        *b_rp;   //!
    TBranch        *b_sp;   //!
    TBranch        *b_rr;   //!
-   TBranch        *b_rs;   //!
+   TBranch        *b_sr;   //!
    TBranch        *b_rg;   //!
    TBranch        *b_sg;   //!
    TBranch        *b_e_raw;   //!
@@ -66,7 +72,7 @@ public :
    virtual Long64_t LoadTree(Long64_t entry);
    virtual void     Init(TTree *tree);
    virtual void     Loop();
-   virtual Bool_t   Notify();
+   virtual bool     Notify();
    virtual void     Show(Long64_t entry = -1);
 
    virtual Long64_t GetEntries();
@@ -77,8 +83,6 @@ public :
 #ifdef raw_cxx
 raw::raw(TTree *tree) : fChain(0) 
 {
-// if parameter tree is not specified (or zero), connect the file
-// used to generate this class and read the Tree.
    Init(tree);
 }
 
@@ -124,11 +128,14 @@ void raw::Init(TTree *tree)
    fChain->SetMakeClass(1);
 
    fChain->SetBranchAddress("hits", &hits, &b_hits);
-   fChain->SetBranchAddress("who", &who, &b_who);
+   fChain->SetBranchAddress("flag_spider_p", &flag_spider_p, &b_flag_spider_p);
+   fChain->SetBranchAddress("flag_spider_r", &flag_spider_r, &b_flag_spider_r);
+   fChain->SetBranchAddress("flag_s3_p", &flag_s3_p, &b_flag_s3_p);
+   fChain->SetBranchAddress("flag_s3_r", &flag_s3_r, &b_flag_s3_r);
    fChain->SetBranchAddress("rp", &rp, &b_rp);
    fChain->SetBranchAddress("sp", &sp, &b_sp);
    fChain->SetBranchAddress("rr", &rr, &b_rr);
-   fChain->SetBranchAddress("sr", &sr, &b_rs);
+   fChain->SetBranchAddress("sr", &sr, &b_sr);
    fChain->SetBranchAddress("rg", rg, &b_rg);
    fChain->SetBranchAddress("sg", sg, &b_sg);
    fChain->SetBranchAddress("e_raw", e_raw, &b_e_raw);
@@ -143,7 +150,7 @@ void raw::Init(TTree *tree)
    Notify();
 }
 
-Bool_t raw::Notify()
+bool raw::Notify()
 {
    // The Notify() function is called when a new file is opened. This
    // can be either for a new TTree in a TChain or when when a new TTree
@@ -151,7 +158,7 @@ Bool_t raw::Notify()
    // to the generated code, but the routine can be extended by the
    // user if needed. The return value is currently not used.
 
-   return kTRUE;
+   return true;
 }
 
 void raw::Show(Long64_t entry)

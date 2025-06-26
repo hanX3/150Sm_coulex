@@ -11,8 +11,10 @@
 #include "set.h"
 
 //
-doppler::doppler(const std::string &filename_in, const std::string &filename_out)
+doppler::doppler(const std::string &filename_in, const std::string &filename_out, std::string config)
 {
+  configure = config;
+
   benchmark = new TBenchmark;
 
   file_in = TFile::Open(filename_in.c_str());
@@ -33,17 +35,20 @@ doppler::doppler(const std::string &filename_in, const std::string &filename_out
   
   tr_event_out = new TTree("tr_event", "event doppler data");
   tr_event_out->Branch("hits", &hits, "hits/I");
-  tr_event_out->Branch("who", &who, "who/I");
+  tr_event_out->Branch("flag_spider_p", &flag_spider_p, "flag_spider_p/O");
+  tr_event_out->Branch("flag_spider_r", &flag_spider_r, "flag_spider_r/O");
+  tr_event_out->Branch("flag_s3_p", &flag_s3_p, "flag_s3_p/O");
+  tr_event_out->Branch("flag_s3_r", &flag_s3_r, "flag_s3_r/O");
   tr_event_out->Branch("rp", &rp, "rp/I");
   tr_event_out->Branch("sp", &sp, "sp/I");
   tr_event_out->Branch("rr", &rr, "rr/I");
-  tr_event_out->Branch("sr", &sr, "rs/I");
+  tr_event_out->Branch("sr", &sr, "sr/I");
   tr_event_out->Branch("rg", rg, "rg[hits]/I");
   tr_event_out->Branch("sg", sg, "sg[hits]/I");
+
   tr_event_out->Branch("e_raw", e_raw, "e_raw[hits]/D");
   tr_event_out->Branch("e_dc_p", e_dc_p, "e_dc_p[hits]/D");
   tr_event_out->Branch("e_dc_r", e_dc_r, "e_dc_r[hits]/D");
-
   tr_event_out->Branch("e_dc_p_10fs", e_dc_p_10fs, "e_dc_p_10fs[hits]/D");
   tr_event_out->Branch("e_dc_r_10fs", e_dc_r_10fs, "e_dc_r_10fs[hits]/D");
   tr_event_out->Branch("e_dc_p_100fs", e_dc_p_100fs, "e_dc_p_100fs[hits]/D");
@@ -53,17 +58,20 @@ doppler::doppler(const std::string &filename_in, const std::string &filename_out
 
   tr_bg_out = new TTree("tr_bg", "bg doppler data");
   tr_bg_out->Branch("hits", &hits, "hits/I");
-  tr_bg_out->Branch("who", &who, "who/I");
+  tr_bg_out->Branch("flag_spider_p", &flag_spider_p, "flag_spider_p/O");
+  tr_bg_out->Branch("flag_spider_r", &flag_spider_r, "flag_spider_r/O");
+  tr_bg_out->Branch("flag_s3_p", &flag_s3_p, "flag_s3_p/O");
+  tr_bg_out->Branch("flag_s3_r", &flag_s3_r, "flag_s3_r/O");
   tr_bg_out->Branch("rp", &rp, "rp/I");
   tr_bg_out->Branch("sp", &sp, "sp/I");
   tr_bg_out->Branch("rr", &rr, "rr/I");
-  tr_bg_out->Branch("sr", &sr, "rs/I");
+  tr_bg_out->Branch("sr", &sr, "sr/I");
   tr_bg_out->Branch("rg", rg, "rg[hits]/I");
   tr_bg_out->Branch("sg", sg, "sg[hits]/I");
+
   tr_bg_out->Branch("e_raw", e_raw, "e_raw[hits]/D");
   tr_bg_out->Branch("e_dc_p", e_dc_p, "e_dc_p[hits]/D");
   tr_bg_out->Branch("e_dc_r", e_dc_r, "e_dc_r[hits]/D");
-
   tr_bg_out->Branch("e_dc_p_10fs", e_dc_p_10fs, "e_dc_p_10fs[hits]/D");
   tr_bg_out->Branch("e_dc_r_10fs", e_dc_r_10fs, "e_dc_r_10fs[hits]/D");
   tr_bg_out->Branch("e_dc_p_100fs", e_dc_p_100fs, "e_dc_p_100fs[hits]/D");
@@ -132,8 +140,6 @@ void doppler::ProcessDoppler(event *ed, TTree *tr)
   int num_spider_p = 0, num_spider_r = 0;
   int num_s3_sector_p = 0, num_s3_sector_r = 0;
   int num_s3_ring_p = 0, num_s3_ring_r = 0;
-  bool flag_spider_p = 0, flag_spider_r = 0;
-  bool flag_s3_p = 0, flag_s3_r = 0;
 
   int key = 0;
 
@@ -317,15 +323,6 @@ void doppler::ProcessDoppler(event *ed, TTree *tr)
       v_s3_sector_p_index.clear();
       v_s3_ring_p_index.clear();
     }
-    if(flag_s3_p){
-      double e_sector = ed->s3_sector_energy[v_s3_sector_p_index[0]];
-      double e_ring = ed->s3_ring_energy[v_s3_ring_p_index[0]];
-      if((e_sector+e_ring)/2. < 20000.){
-        flag_s3_p = 0;
-        v_s3_sector_p_index.clear();
-        v_s3_ring_p_index.clear();
-      }
-    }
 
     // s3 r
     if(num_s3_sector_r==0 || num_s3_ring_r==0){
@@ -450,11 +447,10 @@ void doppler::ProcessDoppler(event *ed, TTree *tr)
       }
 
       hits = v_ge_index.size();
-      who = 1;
       rp = ed->spider_ring_id[jjj];
       sp = ed->spider_sector_id[jjj];
 
-      tr->Fill();
+      if(hits>0) tr->Fill();
       Clear();
     }
 
@@ -509,11 +505,10 @@ void doppler::ProcessDoppler(event *ed, TTree *tr)
       }
 
       hits = v_ge_index.size();
-      who = 2;
       rp = ed->s3_ring_id[jjj_ring];
       sp = ed->s3_sector_id[jjj_ring];
 
-      tr->Fill();
+      if(hits>0) tr->Fill();
       Clear();
     }
 
@@ -723,7 +718,7 @@ bool doppler::ReadGeConfigInfo()
 
   // ge configure
   std::ifstream fi;
-  fi.open(TString::Format("../pars/config/%s.txt", CONFIGURE));
+  fi.open(TString::Format("../pars/config/%s.txt", configure.c_str()));
   if(!fi){
     std::cout << "can not open configure.txt." << std::endl;
     return 0;
@@ -755,7 +750,8 @@ void doppler::PrintGeConfigInfo()
 void doppler::Clear()
 {
   hits = 0;
-  who = 0;
+  flag_spider_p = 0; flag_spider_r = 0;
+  flag_s3_p = 0; flag_s3_r = 0;
   rp = 0; sp = 0;
   rr = 0; sr = 0;
   memset(rg, 0, sizeof(rg));

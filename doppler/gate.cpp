@@ -38,6 +38,7 @@ void gate(int e1, int e2)
         for(int jj=0;jj<rd_event->hits;jj++){
           if(j==jj) continue;
           else h_event->Fill(rd_event->e_dc_r_1000fs[jj]);
+          // else h_event->Fill(rd_event->e_raw[jj]);
         }
       }
     }
@@ -56,6 +57,7 @@ void gate(int e1, int e2)
         for(int jj=0;jj<rd_bg->hits;jj++){
           if(j==jj) continue;
           else h_bg->Fill(rd_bg->e_dc_r_1000fs[jj]);
+          // else h_bg->Fill(rd_bg->e_raw[jj]);
         }
       }
     }
@@ -77,6 +79,4 @@ void gate(int e1, int e2)
   c2->cd();
   c2->SetLogy();
   h_event_no_bg->Draw();
-
-
 }

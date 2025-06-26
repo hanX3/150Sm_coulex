@@ -14,8 +14,8 @@ void analysis()
   TCanvas *c1 = new TCanvas("c1","",0,0,500,360);
 
   TH1D *h1, *hh1;
-  h1 = (TH1D*)gFile->Get("event_e_dc_p_1000fs_spider_p");
-  hh1 = (TH1D*)gFile->Get("bg_e_dc_p_1000fs_spider_p");
+  h1 = (TH1D*)gFile->Get("event_e_raw_spider_p");
+  hh1 = (TH1D*)gFile->Get("bg_e_raw_spider_p");
 
   h1->Add(hh1, -1);
 
@@ -23,5 +23,4 @@ void analysis()
   c1->SetLogy();
 
   h1->Draw();
-
 }

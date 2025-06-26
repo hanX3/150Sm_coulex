@@ -15,7 +15,7 @@
 class doppler
 {
 public:
-  doppler(const std::string &filename_in, const std::string &filename_out);
+  doppler(const std::string &filename_in, const std::string &filename_out, std::string config);
   virtual ~doppler();
 
   void Process();
@@ -51,6 +51,9 @@ private:
   std::map<int, std::pair<double, double>> map_s3_ring_cut_r;
 
 private:
+  std::string configure;
+
+private:
   TBenchmark *benchmark;
   TFile *file_in;
   TTree *tr_event;
@@ -64,7 +67,10 @@ private:
   TTree *tr_bg_out;
   
   Int_t hits;
-  Int_t who;
+  Bool_t flag_spider_p;
+  Bool_t flag_spider_r;
+  Bool_t flag_s3_p;
+  Bool_t flag_s3_r;
   Int_t rp; // ring for projectile
   Int_t sp; // sector for projectile
   Int_t rr; // ring for recoil

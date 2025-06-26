@@ -1062,16 +1062,7 @@ bool build::ReadGeTwData()
   std::cout << "start read ge ts time walk data" << std::endl;
 
   std::ifstream fi;
-  if(run==377 || (run>=457 && run<=462) || (run>=472 && run<=605)){
-    fi.open(TString::Format("../ge_time_walk/par/ge_time_walk_%s.txt", TF).Data());
-  }else if((run>=616 && run<=674) || (run>=721 && run<=723)){
-    fi.open(TString::Format("../ge_time_walk/par/ge_time_walk_%s.txt", TF).Data());
-  }else if(run>=680 && run<=718){
-    fi.open(TString::Format("../ge_time_walk/par/ge_time_walk_%s.txt", TF).Data());
-  }else{
-    std::cout << "wrong run number." << std::endl;
-    return 0;
-  }
+  fi.open(TString::Format("../ge_time_walk/par/ge_time_walk_%s_%s.txt", TF, CUT).Data());
 
   if(!fi){
     std::cout << "can not open ge ts time walk data" << std::endl;

@@ -15,5 +15,6 @@ constexpr int TIMEWINDOW = 800;//ns
 constexpr int TIMEJUMP = 600;//ns
 
 constexpr const char TF[] = "tf2";
+constexpr const char CUT[] = "cut_low";
 
 #endif

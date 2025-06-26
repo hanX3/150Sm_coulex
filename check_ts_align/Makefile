@@ -1,4 +1,4 @@
-out = btf1
+out = build
 
 sourcefile = main.cpp build.h build.cpp set.h
 

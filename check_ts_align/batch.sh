@@ -1,12 +1,12 @@
 #!/usr/bin/bash
 
-max_jobs=150
+max_jobs=120
 
 mkdir -p out
 
 while read run; do
-  ./btf1 $run > out/$run &
-  ./btf2 $run > out/$run &
+  # ./b_tf1_low $run > out/$run &
+  ./build $run > out/$run &
 
   while (( $(jobs -p | wc -l) >= $max_jobs )); do
     wait -n

@@ -5,6 +5,5 @@
   gROOT->ProcessLine("gROOT->SetBatch(1)");
   gROOT->ProcessLine("get_par_all(377)");
 
-
   gROOT->ProcessLine(".q");
 }

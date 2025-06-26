@@ -1,9 +1,9 @@
 #include "set.h"
 
 //
-void draw_sample()
+void draw_sample(string str)
 {
-  TFile *fi = TFile::Open("../rootfile/data0472_0597_ge_tw_th2d_event.root");
+  TFile *fi = TFile::Open(TString::Format("../rootfile/data0472_0597_ge_tw_th2d_event_%s.root",str.c_str()));
   if(fi->IsZombie()){
     cout << "can not open rootfile." << endl;
     return;
@@ -43,7 +43,7 @@ void draw_sample()
       h[k] = (TH1D*)hh[k]->ProjectionX(TString::Format("sid%d_ch%02d",i,j), 20, 200);
       h[k]->Draw();
 
-      c3[k]->SaveAs(TString::Format("./fig/c3_%s.png",h[k]->GetName()).Data());
+      c3[k]->SaveAs(TString::Format("./fig/%s/c3_%s.png",str.c_str(),h[k]->GetName()).Data());
     }
   }
 

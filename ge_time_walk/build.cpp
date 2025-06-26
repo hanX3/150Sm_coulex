@@ -729,7 +729,6 @@ void build::GetGeSpiderS3EventRandom()
       }
     }
     i_current = i-1;
-
   }//while
 
   std::cout << std::endl;

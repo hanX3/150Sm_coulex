@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-max_jobs=110
+max_jobs=120
 
 mkdir -p out
 
@@ -10,5 +10,5 @@ while read run; do
   while (( $(jobs -p | wc -l) >= $max_jobs )); do
     wait -n
   done
-done < "./run.txt"
+done < "./run_472_605.txt"
 

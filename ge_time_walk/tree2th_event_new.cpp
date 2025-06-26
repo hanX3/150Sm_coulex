@@ -1,19 +1,19 @@
 #include "set.h" 
 
 //
-void tree2th_event_new(int run)
+void tree2th_event_new(int run, string cut_str)
 {
   TRandom3 *rndm = new TRandom3((Long64_t)time(0)); 
 
   TFile *fi;
 
-  fi = TFile::Open(TString::Format("../rootfile/data%04d_ge_tw_%dns.root", run, TIMEWINDOW).Data());
+  fi = TFile::Open(TString::Format("../rootfile/data%04d_ge_tw_%dns_1.root", run, TIMEWINDOW).Data());
   if(fi->IsZombie()){
     cout << "can not open rootfile." << endl;
     return;
   }
 
-  TFile *fo = new TFile(TString::Format("../rootfile/data%04d_ge_tw_th2d_event.root", run).Data(), "recreate");
+  TFile *fo = new TFile(TString::Format("../rootfile/data%04d_ge_tw_th2d_event_%s_1.root",run,cut_str.c_str()).Data(), "recreate");
 
   int n_max_ge = GENUM;
   int n_max_spider = SPIDERNUM;
@@ -22,10 +22,31 @@ void tree2th_event_new(int run)
 
   double cut_ge_min = 50.; 
   double cut_ge_max = 4096.; 
-  double cut_spider_min = 20000;
-  double cut_spider_max = 90000;
-  double cut_s3_min = 2000;
-  double cut_s3_max = 30000;
+  // cut spider
+  // cut low 2000-20000
+  // cut high 20000-90000
+  // cut s3
+  // cut low 2000-30000
+  // cut high 30000-90000
+  double cut_spider_min = 0.;
+  double cut_spider_max = 0.;
+  double cut_s3_min = 0;
+  double cut_s3_max = 0;
+
+  if(strcmp(cut_str.c_str(),"cut_low") == 0){
+    cut_spider_min = 2000;
+    cut_spider_max = 20000;
+    cut_s3_min = 2000;
+    cut_s3_max = 30000;
+  }else if(strcmp(cut_str.c_str(),"cut_high") == 0){
+    cut_spider_min = 20000;
+    cut_spider_max = 90000;
+    cut_s3_min = 30000;
+    cut_s3_max = 90000;
+  }else{
+    cout << "wrong cut str." << endl;
+    return;
+  }
   
   //
   Int_t n_ge = 0;
@@ -87,8 +108,8 @@ void tree2th_event_new(int run)
   TH2D *hh_spider[n_max_ge], *hh_s3[n_max_ge];
   for(int i=2;i<=5;i++){
     for(int j=0;j<16;j++){
-      hh_spider[(i-2)*16+j] = new TH2D(TString::Format("hh_spider_ge_sid%d_ch%02d",i,j).Data(), "", 150,-1500,1500,1024,0,4096);
-      hh_s3[(i-2)*16+j] = new TH2D(TString::Format("hh_s3_ge_sid%d_ch%02d",i,j).Data(), "", 150,-1500,1500,1024,0,4096);
+      hh_spider[(i-2)*16+j] = new TH2D(TString::Format("hh_spider_ge_sid%d_ch%02d",i,j).Data(), "", 300,-1500,1500,1024,0,4096);
+      hh_s3[(i-2)*16+j] = new TH2D(TString::Format("hh_s3_ge_sid%d_ch%02d",i,j).Data(), "", 300,-1500,1500,1024,0,4096);
     }
   }
 
@@ -162,6 +183,13 @@ void tree2th_event_new(int run)
           min = min_temp;
         }else continue;
       }
+      /*
+      if(ge_sid[0]==2 && ge_ch[0]==12 && ge_energy[0]>80 && ge_energy[0]<400){
+        cout << "ge " << ge_energy[0] << " " << v_ge_ts[0] << endl;
+        cout << "spider " << v_spider_ts[j] << " " << spider_energy[j] << endl;
+        cout << endl;
+      }
+      */
       
       hpg->Fill(v_spider_ts[j]-v_ge_ts[0]);
       hh_spider[(ge_sid[0]-2)*16+ge_ch[0]]->Fill(v_spider_ts[j]-v_ge_ts[0], ge_energy[0]);

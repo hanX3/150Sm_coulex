@@ -7,7 +7,7 @@
 #include <stdlib.h>
 
 //
-build::build(const std::string &filename_in, const std::string &filename_out, int r)
+build::build(const std::string &filename_in, const std::string &filename_out, int r, double w, double j)
 {
   benchmark = new TBenchmark;
 
@@ -19,6 +19,33 @@ build::build(const std::string &filename_in, const std::string &filename_out, in
   }else{
     throw std::invalid_argument("wrong run number.");
   }
+
+  map_clover_id = {
+    {212, 2},
+    {213, 2},
+    {214, 2},
+    {215, 2},
+
+    {400, 3},
+    {401, 3},
+    {402, 3},
+    {403, 3},
+
+    {404, 4},
+    {405, 4},
+    {406, 4},
+    {407, 4},
+
+    {409, 5},
+    {410, 5},
+    {411, 5}
+  };
+
+  for(const auto &pair : map_clover_id) set_clover_id.insert(pair.second);
+
+  //
+  coin_width = w;
+  jump_width = j;
 
   if(!InitMapSectorRingID()){
     throw std::invalid_argument("can not init ring and sector id data.");
@@ -76,7 +103,7 @@ void build::GetGeSpiderS3EventPrompt()
   double cut_ge = CUTGE; 
   double cut_si = CUTSI;
 
-  double t_win = TIMEWINDOW;
+  double t_win = coin_width;
 
   //
   Int_t n_ge = 0;
@@ -335,6 +362,8 @@ void build::GetGeSpiderS3EventPrompt()
     // std::cout << "n_ge " << n_ge << std::endl;
     // std::cout << " n_spider " << n_spider << std::endl;
     // std::cout << " n_s3_sector " << n_s3_sector << " n_s3_ring " << n_s3_ring << std::endl;
+    
+    CloverAddback(ge_sid, ge_ch, ge_ring_id, ge_sector_id, ge_energy, ge_ts, n_ge);
     if(n_ge*(n_spider+n_s3_sector+n_s3_ring) > 0){
       n_evt++;
 
@@ -408,9 +437,9 @@ void build::GetGeSpiderS3EventRandom()
   double cut_ge = CUTGE; 
   double cut_si = CUTSI;
 
-  double t_prompt = (TIMEWINDOW>TIMEJUMP) ? TIMEJUMP : TIMEWINDOW;
-  double t_min_rand = TIMEJUMP;
-  double t_max_rand = TIMEJUMP+TIMEWINDOW;
+  double t_prompt = (coin_width>jump_width) ? jump_width : coin_width;
+  double t_min_rand = jump_width;
+  double t_max_rand = jump_width+coin_width;
 
   //
   Int_t n_ge = 0;
@@ -683,6 +712,8 @@ void build::GetGeSpiderS3EventRandom()
     // std::cout << "n_ge " << n_ge << std::endl;
     // std::cout << " n_spider " << n_spider << std::endl;
     // std::cout << " n_s3_sector " << n_s3_sector << " n_s3_ring " << n_s3_ring << std::endl;
+    
+    CloverAddback(ge_sid, ge_ch, ge_ring_id, ge_sector_id, ge_energy, ge_ts, n_ge);
     if(n_ge*(n_spider+n_s3_sector+n_s3_ring) > 0){
       n_evt++;
 
@@ -742,6 +773,107 @@ void build::GetGeSpiderS3EventRandom()
   file_out->cd();
   tr->Write();
 }
+
+//
+void build::CloverAddback(Short_t *sid, Short_t *ch, Short_t *ring_id, Short_t *sector_id, Double_t *energy, Long64_t *ts, int &n)
+{
+  if(n==1) return;
+
+  //
+  std::map<int, std::vector<int>> map_clover_hit;
+  std::map<int, bool> map_clover_flag_ab;
+  std::map<int, bool> map_clover_flag_rm;
+  std::map<int, bool> map_clover_flag_ab_used;
+  for(int id:set_clover_id){
+    map_clover_hit[id] = {};
+    map_clover_flag_ab[id] = 0;
+    map_clover_flag_rm[id] = 0;
+    map_clover_flag_ab_used[id] = 0;
+  }
+
+  for(int i=0;i<n;++i){
+    if(map_clover_id.find(100*sid[i]+ch[i]) != map_clover_id.end()){
+      map_clover_hit[map_clover_id[100*sid[i]+ch[i]]].push_back(i);
+    }
+  }
+
+  for(auto &[id,v] : map_clover_hit){
+    if(v.size()==2){
+      if(std::abs(ch[v[0]]-ch[v[1]])!=2){
+        map_clover_flag_ab[id] = 1;
+        map_clover_flag_rm[id] = 1;
+      }else{
+        map_clover_flag_rm[id] = 1;
+      }
+    }
+    if(v.size()>2){
+      map_clover_flag_rm[id] = 1;
+    }
+  }
+
+  std::vector<Short_t> v_sid, v_ch, v_ring_id, v_sector_id;
+  std::vector<Double_t> v_energy;
+  std::vector<Long64_t> v_ts;
+
+  int key;
+  int id;
+  for(int i=0;i<n;++i){
+    key = 100*sid[i]+ch[i];
+    if(map_clover_id.find(key) != map_clover_id.end()){
+      id = map_clover_id[key];
+      if(map_clover_flag_ab[id] && !map_clover_flag_ab_used[id]){
+        map_clover_flag_ab_used[id] = 1;
+        bool f = energy[map_clover_hit[id][0]]>energy[map_clover_hit[id][1]];
+        v_sid.push_back(f ? sid[map_clover_hit[id][0]]: sid[map_clover_hit[id][1]]);
+        v_ch.push_back(f ? ch[map_clover_hit[id][0]]: ch[map_clover_hit[id][1]]);
+        v_ring_id.push_back(f ? ring_id[map_clover_hit[id][0]]: ring_id[map_clover_hit[id][1]]);
+        v_sector_id.push_back(f ? sector_id[map_clover_hit[id][0]]: sector_id[map_clover_hit[id][1]]);
+        v_energy.push_back(energy[map_clover_hit[id][0]]+energy[map_clover_hit[id][1]]);
+        v_ts.push_back(f ? ts[map_clover_hit[id][0]]: ts[map_clover_hit[id][1]]);
+      }
+      if(!map_clover_flag_rm[id]){
+        v_sid.push_back(sid[i]);
+        v_ch.push_back(ch[i]);
+        v_ring_id.push_back(ring_id[i]);
+        v_sector_id.push_back(sector_id[i]);
+        v_energy.push_back(energy[i]);
+        v_ts.push_back(ts[i]);
+      }
+    }
+    else{
+      v_sid.push_back(sid[i]);
+      v_ch.push_back(ch[i]);
+      v_ring_id.push_back(ring_id[i]);
+      v_sector_id.push_back(sector_id[i]);
+      v_energy.push_back(energy[i]);
+      v_ts.push_back(ts[i]);
+    }
+  }
+
+  for(size_t i=0;i<v_sid.size();++i){
+    sid[i] = v_sid[i];
+    ch[i] = v_ch[i];
+    ring_id[i] = v_ring_id[i];
+    sector_id[i] = v_sector_id[i];
+    energy[i] = v_energy[i];
+    ts[i] = v_ts[i];
+  }
+  n = v_sid.size();
+
+  return;
+}
+
+//
+void build::S3Cor(Short_t s_sid, Short_t s_ch, Short_t s_id, Double_t s_energy, Long64_t s_ts, int s_n,
+                  Short_t r_sid, Short_t r_ch, Short_t r_id, Double_t r_energy, Long64_t r_ts, int r_n)
+{
+  if(s_n<2 && r_n<2) return;
+
+  // todo
+
+  return;
+}
+
 //
 void build::SaveFile()
 {

@@ -1,6 +1,7 @@
 #include "build.h"
 #include "set.h"
 
+#include <sys/prctl.h>
 #include <iostream>
 #include <fstream>
 #include <assert.h>
@@ -12,22 +13,30 @@
 //
 int main(int argc, char const *argv[])
 {
-  if(argc != 2){
-    std::cout << "need parameter" << std::endl;
-    std::cout << "like: build 33" << std::endl;
+  prctl(PR_SET_NAME, "build");
+
+  if(argc != 4){
+    std::cout << "./build run win jump" << std::endl;
     return -1;
   }
 
   int run = atoi(argv[1]);
-  TString file_in = TString::Format("../rootfile/data%04d.root", run);
-  std::cout << "analysis " << file_in << std::endl;
-  
-  TString file_out = TString::Format("../rootfile/data%04d_build_%dns.root", run, TIMEWINDOW);
+  double win = atof(argv[2]);
+  double jump = atof(argv[3]);
 
+#ifdef TW  
+  TString file_in = TString::Format("../rootfile/data%04d_tw.root", run);
+  TString file_out = TString::Format("../rootfile/data%04d_tw_build_%dns_jump_%dns.root", run, int(win), int(jump));
+#else
+  TString file_in = TString::Format("../rootfile/data%04d.root", run);
+  TString file_out = TString::Format("../rootfile/data%04d_build_%dns_jump_%dns.root", run, int(win), int(jump));
+#endif
+
+  std::cout << "analysis " << file_in << std::endl;
   TStopwatch timer;
   timer.Start();
 
-  build *bu = new build(file_in.Data(), file_out.Data(), run);
+  build *bu = new build(file_in.Data(), file_out.Data(), run, win, jump);
   bu->Process();
 
   timer.Stop();

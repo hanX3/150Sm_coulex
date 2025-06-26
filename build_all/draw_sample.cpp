@@ -2,11 +2,12 @@
 #include <sys/types.h>
 
 //
-void draw_sample(int run, int win)
+void draw_sample(int run, int win, int jump)
 {
   gROOT->SetBatch(1);
 
-  mkdir(TString::Format("./fig/%dns/%04d", win, run).Data(), 0777);
+  mkdir(TString::Format("./fig/%d_%d", win, jump).Data(), 0777);
+  mkdir(TString::Format("./fig/%d_%d/%04d", win, jump, run).Data(), 0777);
 
   int colors[12] = {
     TColor::GetColor("#E41A1C"), TColor::GetColor("#377EB8"),
@@ -18,7 +19,7 @@ void draw_sample(int run, int win)
   };
 
   //
-  TFile *fi =  TFile::Open(TString::Format("../rootfile/data%04d_build_%dns_hist_event.root",run,win).Data());
+  TFile *fi =  TFile::Open(TString::Format("../rootfile/data%04d_build_%dns_jump_%dns_hist_event.root",run,win,jump).Data());
   if(fi->IsZombie()){
     cout << "cannot open the file." << std::endl;
     return;
@@ -33,82 +34,90 @@ void draw_sample(int run, int win)
 
   hh = (TH2D*)fi->Get("hh_spider_spot");
   hh->Draw("colz");
-  c1->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, hh->GetName()).Data());
+  c1->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, hh->GetName()).Data());
 
   hh = (TH2D*)fi->Get("hh_s3_sector_spot");
   hh->Draw("colz");
-  c1->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, hh->GetName()).Data());
+  c1->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, hh->GetName()).Data());
 
   hh = (TH2D*)fi->Get("hh_s3_ring_spot");
   hh->Draw("colz");
-  c1->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, hh->GetName()).Data());
+  c1->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, hh->GetName()).Data());
 
   //
   TCanvas *c2 = new TCanvas("c2", "", 0, 0, 400, 300);
   c2->cd();
+  c2->SetLogy();
 
   // ts diff
   TH1D *h;
   
   h = (TH1D*)fi->Get("hpg");
+  h->GetXaxis()->SetRangeUser(-500, 500);
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
 
   h = (TH1D*)fi->Get("hgg");
+  h->GetXaxis()->SetRangeUser(-500, 500);
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
 
   h = (TH1D*)fi->Get("hpp");
+  h->GetXaxis()->SetRangeUser(-500, 500);
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
 
   h = (TH1D*)fi->Get("h_spider_ge");
+  h->GetXaxis()->SetRangeUser(-500, 500);
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
 
   h = (TH1D*)fi->Get("h_s3_ge");
+  h->GetXaxis()->SetRangeUser(-500, 500);
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
 
   h = (TH1D*)fi->Get("h_spider_spider");
+  h->GetXaxis()->SetRangeUser(-500, 500);
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
 
   h = (TH1D*)fi->Get("h_s3_s3");
+  h->GetXaxis()->SetRangeUser(-500, 500);
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
 
   // hits
   c2->SetLogy();
   
   h = (TH1D*)fi->Get("h_n_spider");
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
   
   h = (TH1D*)fi->Get("h_n_s3_sector");
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
   
   h = (TH1D*)fi->Get("h_n_s3_ring");
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
   
   // id
   h = (TH1D*)fi->Get("h_spider_sector_id");
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
   
   h = (TH1D*)fi->Get("h_spider_ring_id");
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
   
   h = (TH1D*)fi->Get("h_s3_sector_id");
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
   
   h = (TH1D*)fi->Get("h_s3_ring_id");
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
 
   // spider th2
   c2->SetLogy(0); 
@@ -116,15 +125,15 @@ void draw_sample(int run, int win)
 
   hh = (TH2D*)fi->Get("hh_spider_sector_energy");
   hh->Draw("colz");
-  c2->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, hh->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, hh->GetName()).Data());
 
   hh = (TH2D*)fi->Get("hh_spider_ring_energy");
   hh->Draw("colz");
-  c2->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, hh->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, hh->GetName()).Data());
 
   hh = (TH2D*)fi->Get("hh_spider_energy");
   hh->Draw("colz");
-  c2->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, hh->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, hh->GetName()).Data());
 
   // spider
   TH1D *h1[96];
@@ -143,7 +152,7 @@ void draw_sample(int run, int win)
     leg1->AddEntry(h1[i], h1[i]->GetName());
   }
   leg1->Draw("same");
-  c2->SaveAs(TString::Format("./fig/%dns/%04d/c_spider_sector_energy_all.png", win, run).Data());
+  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_spider_sector_energy_all.png", win, jump, run).Data());
 
   TLegend *leg2 = new TLegend(0.7, 0.4, 0.98, 0.95);
   for(int i=0;i<8;i++){
@@ -156,7 +165,7 @@ void draw_sample(int run, int win)
     leg2->AddEntry(h1[i], h1[i]->GetName());
   }
   leg2->Draw("same");
-  c2->SaveAs(TString::Format("./fig/%dns/%04d/c_spider_ring_energy_all.png", win, run).Data());
+  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_spider_ring_energy_all.png", win, jump, run).Data());
 
   TLegend *leg3[8];
   for(int i=0;i<8;i++){
@@ -170,7 +179,7 @@ void draw_sample(int run, int win)
       leg3[i]->AddEntry(h1[i*12+j], h1[i*12+j]->GetName());
     }
     leg3[i]->Draw("same");
-    c2->SaveAs(TString::Format("./fig/%dns/%04d/c_spider_ring%02d_energy.png", win, run, i+1).Data());
+    c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_spider_ring%02d_energy.png", win, jump, run, i+1).Data());
   }
 
   TLegend *leg4[12];
@@ -185,7 +194,7 @@ void draw_sample(int run, int win)
       leg4[i]->AddEntry(h1[i*8+j], h1[i*8+j]->GetName());
     }
     leg4[i]->Draw("same");
-    c2->SaveAs(TString::Format("./fig/%dns/%04d/c_spider_sector%02d_energy.png", win, run, i+1).Data());
+    c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_spider_sector%02d_energy.png", win, jump, run, i+1).Data());
   }
 
   // s3 th2
@@ -194,11 +203,11 @@ void draw_sample(int run, int win)
 
   hh = (TH2D*)fi->Get("hh_s3_sector_energy");
   hh->Draw("colz");
-  c2->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, hh->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, hh->GetName()).Data());
 
   hh = (TH2D*)fi->Get("hh_s3_ring_energy");
   hh->Draw("colz");
-  c2->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, hh->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, hh->GetName()).Data());
 
   // 
   c2->SetLogy();
@@ -206,11 +215,11 @@ void draw_sample(int run, int win)
 
   h = (TH1D*)fi->Get("h_s3_sector_energy");
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
   
   h = (TH1D*)fi->Get("h_s3_ring_energy");
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%dns/%04d/c_%s.png", win, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
   
   TLegend *leg5[4];
   for(int i=0;i<4;i++){
@@ -224,7 +233,7 @@ void draw_sample(int run, int win)
       leg5[i]->AddEntry(h1[i*4+j], h1[i*4+j]->GetName());
     }
     leg5[i]->Draw("same");
-    c2->SaveAs(TString::Format("./fig/%dns/%04d/c_s3_sector%02d_energy.png", win, run, i+1).Data());
+    c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_s3_sector%02d_energy.png", win, jump, run, i+1).Data());
   }
 
   TLegend *leg6[4];
@@ -239,7 +248,7 @@ void draw_sample(int run, int win)
       leg6[i]->AddEntry(h1[i*4+j], h1[i*4+j]->GetName());
     }
     leg6[i]->Draw("same");
-    c2->SaveAs(TString::Format("./fig/%dns/%04d/c_s3_ring%02d_energy.png", win, run, i+1).Data());
+    c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_s3_ring%02d_energy.png", win, jump, run, i+1).Data());
   }
 
   // ge spectra
@@ -305,7 +314,7 @@ void draw_sample(int run, int win)
         leg7[k]->AddEntry(h_ge_s3_cut[k], h_ge_s3_cut[k]->GetName());
 
         leg7[k]->Draw("same");
-        c3->SaveAs(TString::Format("./fig/%dns/%04d/c_ge_ring%d_sector%d.png",win,run,i,j).Data());
+        c3->SaveAs(TString::Format("./fig/%d_%d/%04d/c_ge_ring%d_sector%d.png",win, jump, run,i,j).Data());
       }
       
       k++;
@@ -335,6 +344,6 @@ void draw_sample(int run, int win)
   leg8->AddEntry(h_ge_s3_cut_all, h_ge_s3_cut_all->GetName());
 
   leg8->Draw("same");
-  c3->SaveAs(TString::Format("./fig/%dns/%04d/c_ge_all.png",win,run).Data());
+  c3->SaveAs(TString::Format("./fig/%d_%d/%04d/c_ge_all.png",win, jump, run).Data());
 
 }

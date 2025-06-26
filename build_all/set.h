@@ -9,7 +9,6 @@ constexpr int S3RINGNUM = 24;
 constexpr double CUTGE = 20.;//keV
 constexpr double CUTSI = 200.;//keV
 
-constexpr int TIMEWINDOW = 100;//ns
-constexpr int TIMEJUMP = 500;//ns
+#define TW
 
 #endif

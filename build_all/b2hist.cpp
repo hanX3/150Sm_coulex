@@ -1,9 +1,9 @@
 //
-void b2hist(int run, int win, TString str)
+void b2hist(int run, int win, int jump, TString str)
 {
   TRandom3 *rndm = new TRandom3((Long64_t)time(0)); 
 
-  TFile *fi = TFile::Open(TString::Format("../rootfile/data%04d_build_%dns.root",run,win).Data());
+  TFile *fi = TFile::Open(TString::Format("../rootfile/data%04d_build_%dns_jump_%dns.root",run,win,jump).Data());
   if(fi->IsZombie()){
     std::cout << "open file run " << run << " error!" << std::endl;
     delete fi;
@@ -15,7 +15,7 @@ void b2hist(int run, int win, TString str)
   raw *rd = new raw(tr); 
 
   //
-  TFile *fo = new TFile(TString::Format("../rootfile/data%04d_build_%dns_hist_%s.root",run,win,str.Data()).Data(), "recreate");
+  TFile *fo = new TFile(TString::Format("../rootfile/data%04d_build_%dns_jump_%dns_hist_%s.root",run,win,jump,str.Data()).Data(), "recreate");
   
   //
   double spider_r_min[8] = {4.63, 14.29, 22.99, 31.69, 40.39, 49.09, 57.79, 66.49};
@@ -39,8 +39,8 @@ void b2hist(int run, int win, TString str)
 
   //
   double cut_ge = 50.;
-  double cut_spider = 10000;
-  double cut_s3 = 10000;
+  double cut_spider = 20000;
+  double cut_s3 = 30000;
 
   vector<Long64_t> v_ge_ts;
   vector<Long64_t> v_spider_ts;
@@ -55,13 +55,13 @@ void b2hist(int run, int win, TString str)
   TH1D *h_spider_spider, *h_spider_s3, *h_s3_s3;
   TH2D *hh_spider_spot, *hh_s3_sector_spot, *hh_s3_ring_spot;
 
-  hpg = new TH1D("hpg", "", 600, -300, 300);
-  hgg = new TH1D("hgg", "", 600, -300, 300);
-  hpp = new TH1D("hpp", "", 600, -300, 300);
-  h_spider_ge = new TH1D("h_spider_ge", "", 600, -300, 300);
-  h_s3_ge = new TH1D("h_s3_ge", "", 600, -300, 300);
-  h_spider_spider = new TH1D("h_spider_spider", "", 600, -300, 300);
-  h_s3_s3 = new TH1D("h_s3_s3", "", 600, -300, 300);
+  hpg = new TH1D("hpg", "", 150, -3000, 3000);
+  hgg = new TH1D("hgg", "", 150, -3000, 3000);
+  hpp = new TH1D("hpp", "", 150, -3000, 3000);
+  h_spider_ge = new TH1D("h_spider_ge", "", 300, -3000, 3000);
+  h_s3_ge = new TH1D("h_s3_ge", "", 300, -3000, 3000);
+  h_spider_spider = new TH1D("h_spider_spider", "", 300, -3000, 3000);
+  h_s3_s3 = new TH1D("h_s3_s3", "", 300, -3000, 3000);
   hh_spider_spot = new TH2D("hh_spider_spot", "", 320,-80,80,320,-80,80);
   hh_s3_sector_spot = new TH2D("hh_s3_sector_spot", "", 720,-36,36,720,-36,36);
   hh_s3_ring_spot = new TH2D("hh_s3_ring_spot", "", 360,-36,36,360,-36,36);
@@ -87,6 +87,8 @@ void b2hist(int run, int win, TString str)
       if(rd->ge_energy[j]<cut_ge) continue;
       v_ge_ts.push_back(rd->ge_ts[j]);
     }
+    if(v_ge_ts.size()==0) continue;
+
     for(int j=0;j<rd->n_spider;j++){
       if(rd->spider_energy[j]<cut_spider) continue;
       v_spider_ts.push_back(rd->spider_ts[j]);
@@ -129,16 +131,6 @@ void b2hist(int run, int win, TString str)
     }
 
     //
-    if(v_si_ts.size()){
-      for(int j=0;j<v_si_ts.size();j++){
-        for(int jj=j+1;jj<v_si_ts.size();jj++){
-          if(rndm->Uniform(0,1)>0.5) hpp->Fill(v_si_ts[j]-v_si_ts[jj]);
-          else hpp->Fill(v_si_ts[jj]-v_si_ts[j]);
-        }
-      }
-    }
-
-    //
     if(v_spider_ts.size()>1){
       for(int j=0;j<v_spider_ts.size();j++){
         for(int jj=j+1;jj<v_spider_ts.size();jj++){
@@ -154,6 +146,16 @@ void b2hist(int run, int win, TString str)
         for(int jj=j+1;jj<v_s3_ts.size();jj++){
           if(rndm->Uniform(0,1)>0.5) h_s3_s3->Fill(v_s3_ts[j]-v_s3_ts[jj]);
           else h_s3_s3->Fill(v_s3_ts[jj]-v_s3_ts[j]);
+        }
+      }
+    }
+
+    //
+    if(v_si_ts.size()){
+      for(int j=0;j<v_si_ts.size();j++){
+        for(int jj=j+1;jj<v_si_ts.size();jj++){
+          if(rndm->Uniform(0,1)>0.5) hpp->Fill(v_si_ts[j]-v_si_ts[jj]);
+          else hpp->Fill(v_si_ts[jj]-v_si_ts[j]);
         }
       }
     }
@@ -311,11 +313,11 @@ void b2hist(int run, int win, TString str)
       tr->Draw(TString::Format("ge_energy>>%s",h_ge_s3[k]->GetName()).Data(), cut_str_s3.Data(),"goff");
       h_ge_s3[k]->SetTitle(cut_str_s3);
       //
-      TString cut_str_spider_cut = TString::Format("ge_ring_id==%d && ge_sector_id==%d && n_spider>0 &&spider_energy>20000", i, j);
+      TString cut_str_spider_cut = TString::Format("ge_ring_id==%d && ge_sector_id==%d && n_spider>0 &&spider_energy>%f", i, j, cut_spider);
       tr->Draw(TString::Format("ge_energy>>%s",h_ge_spider_cut[k]->GetName()).Data(), cut_str_spider_cut.Data(),"goff");
       h_ge_spider_cut[k]->SetTitle(cut_str_spider_cut);
       //
-      TString cut_str_s3_cut = TString::Format("ge_ring_id==%d && ge_sector_id==%d && (n_s3_ring+n_s3_sector)>0 &&(s3_ring_energy>30000||s3_sector_energy>30000)", i, j);
+      TString cut_str_s3_cut = TString::Format("ge_ring_id==%d && ge_sector_id==%d && (n_s3_ring+n_s3_sector)>0 &&(s3_ring_energy>%f||s3_sector_energy>%f)", i, j, cut_s3, cut_s3);
       tr->Draw(TString::Format("ge_energy>>%s",h_ge_s3_cut[k]->GetName()).Data(), cut_str_s3_cut.Data(),"goff");
       h_ge_s3_cut[k]->SetTitle(cut_str_s3_cut);
       k++;

@@ -7,6 +7,7 @@
 #include "TFile.h"
 #include "TTree.h"
 #include "TH1D.h"
+#include "TF1.h"
 #include "TRandom3.h"
 
 #include <vector>
@@ -55,6 +56,9 @@ public:
   bool ReadTSOffset();
   void PrintTSOffset();
 
+  bool ReadGeTwData();
+  void PrintGeTwData();
+
   bool InitMapSectorRingID();
   void PrintMapSectorRingID();
 
@@ -63,12 +67,13 @@ public:
 
 private:
   void GetEnergy();
-  void GetTSns();
+  void GetTsns();
 
 private:
   std::map<int, std::vector<double>> map_cali_data;
   std::map<int, double> map_k_data;
   std::map<int, double> map_ts_offset;
+  std::map<int, std::vector<double>> map_ge_tw_data;
 
   std::map<int, int> map_s3_sector_id, map_s3_ring_id;
   std::map<int, std::vector<double>> map_s3_sector_cor_data, map_s3_ring_cor_data;
@@ -85,6 +90,7 @@ private:
 
   raw *rd;
 
+  TF1 *tf;
   TRandom3 *rndm;
 
 private:

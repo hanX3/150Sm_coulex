@@ -26,6 +26,13 @@ sort::sort(const std::string &filename_in, const std::string &filename_out, cons
   rd = new raw(tr_in); 
 
   //
+  if(std::strcmp(TF,"tf1") == 0) tf = new TF1("tf", "[0]+[1]/pow(x,0.5)+[2]/pow(x,1)+[3]/pow(x,2)", 0, 4096);
+  else if(std::strcmp(TF, "tf2") == 0) tf = new TF1("tf","[0]+[1]*exp([2]/pow(x,1.5))", 0, 4096);
+  else{
+    throw std::invalid_argument("wrong tf name.");
+  }
+
+  //
   if(!ReadCaliData()){
     throw std::invalid_argument("can not read cali data.");
   }
@@ -38,6 +45,12 @@ sort::sort(const std::string &filename_in, const std::string &filename_out, cons
     throw std::invalid_argument("can not read ts offset data.");
   }
   PrintTSOffset();
+
+  // read ge time walk
+  if(!ReadGeTwData()){
+    throw std::invalid_argument("can not read ge time walk data.");
+  }
+  PrintGeTwData();
 
   rndm = new TRandom3((Long64_t)time(0));
   
@@ -67,7 +80,15 @@ void sort::Process()
   benchmark->Start("process");
 
   rd->GetEntry(rd->GetEntries()-1);
-  GetTSns();
+  sd(rd->cid, rd->sid, rd->ch, 0., 0);
+  GetEnergy();
+  if(map_cali_data.find(10000*rd->cid+100*rd->sid+rd->ch) == map_cali_data.end()){
+    std::cout << "can not find cali data for this channel." << std::endl;
+    std::cout << "cid " << rd->cid << " sid " << rd->sid << " ch " << rd->ch << std::endl;
+    return;
+  }
+
+  GetTsns();
   std::cout << "total time " << sd.ts/1000000000 << "s" << std::endl; 
 
   Long64_t ts_save = TIMEBUFFER;
@@ -79,11 +100,12 @@ void sort::Process()
     if(map_cali_data.find(10000*rd->cid+100*rd->sid+rd->ch) == map_cali_data.end()){
       std::cout << "can not find cali data for this channel." << std::endl;
       std::cout << "cid " << rd->cid << " sid " << rd->sid << " ch " << rd->ch << std::endl;
-      break;
+      return;
     }
     
     GetEnergy();
-    GetTSns();
+    if(sd.evte<CUTGE) continue;
+    GetTsns();
 
     key = ((((((sd.ts)<<4)+sd.cid)<<4)+sd.sid)<<6)+sd.ch;
     map_sort_data.insert(std::make_pair(key, sd));
@@ -126,23 +148,32 @@ void sort::Process()
 }
 
 //
-void sort::GetTSns()
+void sort::GetTsns()
 {
+  int key = 10000*rd->cid+100*rd->sid+rd->ch;
+
   if(rd->cid==0){
     if(rd->cfdft){
       sd.ts = rd->ts*8;
     }else{
       sd.ts = (rd->ts*2-rd->cfds+rd->cfd/16384.)*4.;
     }
+    
+    sd.ts += map_ts_offset[key];
+
+#ifdef TW
+    for(int i=0;i<tf->GetNpar();++i) tf->SetParameter(i, map_ge_tw_data[key][i]);
+    sd.ts += tf->Eval(sd.evte);
+#endif
   }
 
   if(rd->cid==1){
     if(rd->sr==250) sd.ts = rd->ts*8;
     if(rd->sr==100) sd.ts = rd->ts*10; 
-  }
 
-  int key = 10000*rd->cid+100*rd->sid+rd->ch;
-  sd.ts += map_ts_offset[key];
+    sd.ts += map_ts_offset[key];
+    sd.ts += rndm->Uniform(-5,5);
+  }
 }
 
 //
@@ -185,7 +216,8 @@ bool sort::ReadCaliData()
 
   //
   std::ifstream fi_cali_ge;
-  fi_cali_ge.open("../pars/cali_ge.txt");
+  if(run==722) fi_cali_ge.open("../cali_ge/cali_0722.txt");
+  else fi_cali_ge.open("../pars/cali_ge.txt");
   if(!fi_cali_ge){
     std::cout << "can not open cali.txt" << std::endl;
     return 0;
@@ -413,6 +445,60 @@ void sort::PrintTSOffset()
     std::cout << it->first << " => " << it->second << '\n';
   }
 }
+
+//
+bool sort::ReadGeTwData()
+{
+  std::cout << "start read ge ts time walk data" << std::endl;
+
+  std::ifstream fi;
+  fi.open(TString::Format("../pars/ge_time_walk_%s.txt", TF).Data());
+
+  if(!fi){
+    std::cout << "can not open ge ts time walk data" << std::endl;
+    return 0;
+  }
+
+  std::string line;
+  std::getline(fi, line);
+
+  int n_par = tf->GetNpar();
+  std::cout << "n_par " << n_par << std::endl;
+
+  int sid, ch;
+  double par[n_par];
+  int key = 0;
+
+  while(1){
+    fi >> sid >> ch;
+    for(int i=0;i<n_par;++i) fi >> par[i];
+    if(!fi.good()) break;
+
+    key = 100*sid+ch; // ch from 0 to 15
+    std::vector<double> value;
+    for(int i=0;i<n_par;++i) value.push_back(par[i]);
+
+    map_ge_tw_data.insert(std::pair<int, std::vector<double>>(key, value));
+  }
+
+  fi.close();
+
+  return 1;
+}
+
+//
+void sort::PrintGeTwData()
+{
+  std::cout << "start print ge ts time walk data" << std::endl;
+
+  std::map<int, std::vector<double>>::iterator it_ge_tw = map_ge_tw_data.begin();
+  for(;it_ge_tw!=map_ge_tw_data.end();it_ge_tw++){
+    std::cout << it_ge_tw->first << " => ";
+    for(auto i=0u;i<it_ge_tw->second.size();++i) std::cout << it_ge_tw->second[i] << " ";
+    std::cout << '\n';
+  }
+}
+
 
 //
 bool sort::InitMapSectorRingID()

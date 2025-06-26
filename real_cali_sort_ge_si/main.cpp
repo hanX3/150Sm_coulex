@@ -20,8 +20,12 @@ int main(int argc, char const *argv[])
   int run = atoi(argv[1]);
   TString file_in = TString::Format("../rootfile/data_C2_%04d_%04d.root", run, run);
   std::cout << "analysis " << file_in << std::endl;
-  
+
+#ifdef TW
+  TString file_out = TString::Format("../rootfile/data%04d_tw.root", run);
+#else
   TString file_out = TString::Format("../rootfile/data%04d.root", run);
+#endif
 
   TStopwatch timer;
   timer.Start();

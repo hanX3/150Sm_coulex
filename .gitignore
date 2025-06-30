@@ -8,7 +8,6 @@ out/
 decode*
 build
 sort
-doppler
 analysis
 
 *.root

@@ -31,14 +31,13 @@ void gate(int e1, int e2)
     if(i%(rd_event->GetEntries()/10)==0) cout << i << "/" << rd_event->GetEntries() << endl;
     rd_event->GetEntry(i);
     
-    if(rd_event->hits<2 || rd_event->who!=1) continue;
+    if(rd_event->hits<2 || !rd_event->b_flag_spider_p) continue;
 
     for(int j=0;j<rd_event->hits;j++){
       if(rd_event->e_dc_r_1000fs[j]>=e1 && rd_event->e_dc_r_1000fs[j]<=e2){
         for(int jj=0;jj<rd_event->hits;jj++){
           if(j==jj) continue;
           else h_event->Fill(rd_event->e_dc_r_1000fs[jj]);
-          // else h_event->Fill(rd_event->e_raw[jj]);
         }
       }
     }
@@ -50,7 +49,7 @@ void gate(int e1, int e2)
     if(i%(rd_bg->GetEntries()/10)==0) cout << i << "/" << rd_bg->GetEntries() << endl;
     rd_bg->GetEntry(i);
     
-    if(rd_bg->hits<2 || rd_bg->who!=1) continue;
+    if(rd_bg->hits<2 || !rd_bg->b_flag_spider_p) continue;
 
     for(int j=0;j<rd_bg->hits;j++){
       if(rd_bg->e_dc_r_1000fs[j]>=e1 && rd_bg->e_dc_r_1000fs[j]<=e2){

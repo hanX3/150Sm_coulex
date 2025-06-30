@@ -15,8 +15,8 @@ int main(int argc, char* argv[])
   int jump = atoi(argv[3]);
 
 #ifdef TW  
-  TString fi_name = TString::Format("../rootfile/data%04d_build_tw_%dns_jump_%dns.root", run, win, jump);
-  TString fo_name = TString::Format("../rootfile/data%04d_doppler_tw_%dns_jump_%dns_%s.root", run, win, jump, argv[4]);
+  TString fi_name = TString::Format("../rootfile/data%04d_tw_build_%dns_jump_%dns.root", run, win, jump);
+  TString fo_name = TString::Format("../rootfile/data%04d_tw_doppler_%dns_jump_%dns_%s.root", run, win, jump, argv[4]);
 #else
   TString fi_name = TString::Format("../rootfile/data%04d_build_%dns_jump_%dns.root", run, win, jump);
   TString fo_name = TString::Format("../rootfile/data%04d_doppler_%dns_jump_%dns_%s.root", run, win, jump, argv[4]);

@@ -6,6 +6,6 @@ constexpr int GENUM = 64;
 constexpr double S3CORDIFF = 1000.;
 constexpr double TARGETTHICKNESS = 1.6; //um
 
-//#define TW
+#define TW
 
 #endif

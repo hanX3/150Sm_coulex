@@ -6,10 +6,11 @@ l_conf=("a" "b" "c" "d" "e")
 
 while read run; do
   for conf in "${l_conf[@]}"; do
-    ./doppler $run 50 300 $conf &
-    ./doppler $run 100 300 $conf &
-    ./doppler $run 150 300 $conf &
-    ./doppler $run 200 300 $conf &
+    #./doppler $run 50 300 $conf &
+    #./doppler $run 100 300 $conf &
+    #./doppler $run 150 300 $conf &
+    #./doppler $run 200 300 $conf &
+    #./doppler $run 250 300 $conf &
     ./doppler $run 250 300 $conf &
 
     # root -b -q "macro.cpp($run, 50, 300, \"$conf\")" &
@@ -17,6 +18,12 @@ while read run; do
     # root -b -q "macro.cpp($run, 150, 300, \"$conf\")" &
     # root -b -q "macro.cpp($run, 200, 300, \"$conf\")" &
     # root -b -q "macro.cpp($run, 250, 300, \"$conf\")" &
+
+    # root -b -q "macro_pro.cpp($run, 50, 300, \"$conf\")" &
+    # root -b -q "macro_pro.cpp($run, 100, 300, \"$conf\")" &
+    # root -b -q "macro_pro.cpp($run, 150, 300, \"$conf\")" &
+    # root -b -q "macro_pro.cpp($run, 200, 300, \"$conf\")" &
+    # root -b -q "macro_pro.cpp($run, 250, 300, \"$conf\")" &
   done
   
   #root -b -q "draw_sample_win_jump.cpp($run, \"a\")" &

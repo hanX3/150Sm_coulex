@@ -1,17 +1,24 @@
+#include "set.h"
+
 //
 void d2hist_pro(int run, int win, int jump, string config_str)
 {
   TRandom3 *rndm = new TRandom3((Long64_t)time(0)); 
 
+#ifdef TW
+  TFile *fi = TFile::Open(TString::Format("../rootfile/data%04d_tw_doppler_%dns_jump_%dns_%s.root",run,win,jump,config_str.c_str()));
+  TFile *fo = new TFile(TString::Format("../rootfile/data%04d_tw_doppler_%dns_jump_%dns_%s_hist_pro.root",run,win,jump,config_str.c_str()), "recreate");
+#else
   TFile *fi = TFile::Open(TString::Format("../rootfile/data%04d_doppler_%dns_jump_%dns_%s.root",run,win,jump,config_str.c_str()));
+  TFile *fo = new TFile(TString::Format("../rootfile/data%04d_doppler_%dns_jump_%dns_%s_hist_pro.root",run,win,jump,config_str.c_str()), "recreate");
+#endif
+
   if(fi->IsZombie()){
     std::cout << "open file run " << run << " error!" << std::endl;
     delete fi;
 
     return ;
   }
-
-  TFile *fo = new TFile(TString::Format("../rootfile/data%04d_doppler_%dns_jump_%dns_%s_hist_pro.root",run,win,jump,config_str.c_str()), "recreate");
   fo->cd();
 
   map<int, int> m_ge_ring_sector_number = {

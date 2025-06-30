@@ -5,11 +5,12 @@ max_jobs=120
 mkdir -p out
 
 while read run; do
-  ./build $run 50 300 &
-  ./build $run 100 300 &
-  ./build $run 150 300 &
-  ./build $run 200 300 &
-  ./build $run 250 300 &
+  # ./build $run 50 300 &
+  # ./build $run 100 300 &
+  # ./build $run 150 300 &
+  # ./build $run 200 300 &
+  # ./build $run 250 300 &
+  # ./build $run 300 300 &
 
   # root -b -q "macro.cpp($run, 50, 300)" &
   # root -b -q "macro.cpp($run, 100, 300)" &

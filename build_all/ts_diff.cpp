@@ -1,3 +1,5 @@
+#include "set.h"
+
 //
 void ts_diff(int run, int win, int jump)
 {
@@ -7,16 +9,42 @@ void ts_diff(int run, int win, int jump)
 
   TRandom3 *rndm = new TRandom3((Long64_t)time(0)); 
   
-  //
+#ifdef TW
+  TFile *fo = new TFile(TString::Format("../rootfile/data%04d_tw_build_%dns_jump_%dns_ts_diff.root",run,win,jump).Data(), "recreate");
+  TFile *fi = TFile::Open(TString::Format("../rootfile/data%04d_tw_build_%dns_jump_%dns.root",run,win,jump).Data());
+#else
   TFile *fo = new TFile(TString::Format("../rootfile/data%04d_build_%dns_jump_%dns_ts_diff.root",run,win,jump).Data(), "recreate");
-  
   TFile *fi = TFile::Open(TString::Format("../rootfile/data%04d_build_%dns_jump_%dns.root",run,win,jump).Data());
+#endif
+
   if(fi->IsZombie()){
     std::cout << "open file run " << run << " error!" << std::endl;
     delete fi;
 
     return ;
   }
+
+  //
+  string line;
+  int sid, ch;
+  bool gb;
+  map<int, bool> map_ge_flag;
+  int key;
+  std::ifstream fi_config;
+  fi_config.open(TString::Format("../pars/config/e.txt"));
+  if(!fi_config){
+    std::cout << "can not open configure.txt." << std::endl;
+    return; 
+  }
+  std::getline(fi_config, line);
+  while(1){
+    fi_config >> sid >> ch >> gb;
+    if(!fi_config)  break;
+
+    key = 100*sid + ch;
+    map_ge_flag[key] = gb;
+  }
+  fi_config.close();
 
   //
   double cut_ge = 50.;
@@ -97,7 +125,8 @@ void ts_diff(int run, int win, int jump)
 
     //
     for(int j=0;j<rd_event->n_ge;++j){
-      v_ge_ts.push_back(rd_event->ge_ts[j]);
+      if(map_ge_flag[100*rd_event->ge_sid[j]+rd_event->ge_ch[j]])
+        v_ge_ts.push_back(rd_event->ge_ts[j]);
     }
     if(v_ge_ts.size()==0) continue;
 
@@ -343,6 +372,7 @@ void ts_diff(int run, int win, int jump)
 
     //
     for(int j=0;j<rd_bg->n_ge;++j){
+      if(map_ge_flag[100*rd_bg->ge_sid[j]+rd_bg->ge_ch[j]])
       v_ge_ts.push_back(rd_bg->ge_ts[j]);
     }
     if(v_ge_ts.size()==0) continue;

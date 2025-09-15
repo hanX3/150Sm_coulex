@@ -415,12 +415,6 @@ double eff_cali_ring_ge_single_peak(TH1D *h, double energy, double l_bg, double 
   lt_result->SetTextSize(0.04);
   lt_result->SetTextColor(kBlack);
   lt_result->Draw();
-
-  TLatex *lt_result2 = new TLatex(0.15, 0.6, Form("area %0.2f (%0.2f)",par[1],sqrt(par[1])));
-  lt_result2->SetNDC();
-  lt_result2->SetTextSize(0.04);
-  lt_result2->SetTextColor(kBlack);
-  lt_result2->Draw();
   
   cc->Update();
   cc->SaveAs(Form("./fig/ring%02d_%dkeV.png",ring,(int)energy));

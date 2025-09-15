@@ -403,12 +403,6 @@ double eff_cali_all_ge_single_peak(TH1D *h, double energy, double l_bg, double l
   lt_result->SetTextColor(kBlack);
   lt_result->Draw();
 
-  TLatex *lt_result2 = new TLatex(0.15, 0.6, Form("area %0.2f (%0.2f)",par[1],sqrt(par[1])));
-  lt_result2->SetNDC();
-  lt_result2->SetTextSize(0.04);
-  lt_result2->SetTextColor(kBlack);
-  lt_result2->Draw();
-  
   cc->Update();
   cc->SaveAs(Form("./fig/all_%dkeV.png",(int)energy));
 

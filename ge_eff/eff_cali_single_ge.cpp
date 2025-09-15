@@ -1,23 +1,59 @@
 //
 // ge info (ring, sector)
-// (1,3) (1,6)
-// (2,1) (2,2) (2,3) (2,7)
-// (3,2) (3,3) (3,4) (3,5) (3,8) (3,9) (3,10)
+// (3,2) (3,3) (3,4) (3,8) (3,9) (3,10)
 // (4,1) (4,2) (4,3) (4,4) (4,5) (4,6) (4,7) (4,8)
 // (5,2) (5,3) (5,4) (5,5) (5,6)
+
+// pars = 12
+// Gaussian + Left-Skew + Step + Background
+Double_t gpeakexregion(Double_t *v, Double_t *par);
+
+// pars = 5
+// Step + Pol1
+Double_t bgstep(Double_t *v, Double_t *par);
+
+// pars = 9
+// Gaussian + Left-Skew
+Double_t gpeak(Double_t *v, Double_t *par);
+
+//
+double eff_fun(double *x, double *p);
+double *eff_fit(map<double, double> &m,  map<double, double> &m_err);
+void eff_cali_single_ge(int r, int s);
+void get_single_ge_h(int r, int s);
+double eff_cali_single_ge_single_peak(TH1D *h, double energy, double l_bg, double l_peak, double u_peak, double u_bg, double ll_ex, double lr_ex, double hl_ex, double hr_ex);
 
 //
 TFile *fi = TFile::Open("../rootfile/data0722_build_ge_200ns.root");
 TTree *tr = (TTree*)fi->Get("tr_event");
+TH1D *h = new TH1D("h", "", 4096, 0, 4096);
+int ring, sector;
 
 //
-void draw_spec(int ring, int sector)
-{
-  TCanvas *cc = new TCanvas("cc", "", 0, 0, 480, 360);
-  cc->cd();
-  TH1D *h1 = new TH1D("h1", TString::Format("ge_ring%02d_sector%02d",ring,sector).Data(), 8192, 0, 4096);
-  tr->Draw("ge_energy>>h1", TString::Format("ge_ring_id==%d&&ge_sector_id==%d",ring,sector).Data());
-}
+std::map<double, std::pair<double, double>> m_interested_eff_err = {
+  {122, {0, 0}},
+  {298, {0, 0}},
+  {306, {0, 0}},
+  {334, {0, 0}},
+  {340, {0, 0}},
+  {403, {0, 0}},
+  {406, {0, 0}},
+  {439, {0, 0}},
+  {485, {0, 0}},
+  {506, {0, 0}},
+  {558, {0, 0}},
+  {585, {0, 0}},
+  {676, {0, 0}},
+  {712, {0, 0}},
+  {737, {0, 0}},
+  {832, {0, 0}},
+  {860, {0, 0}},
+  {869, {0, 0}},
+  {1046, {0, 0}},
+  {1166, {0, 0}},
+  {1194, {0, 0}},
+  {1350, {0, 0}}
+};
 
 //
 double eff_fun(double *x, double *p)
@@ -34,9 +70,11 @@ double eff_fun(double *x, double *p)
 }
 
 //
-void eff_fit(map<double, double> &m)
+double *eff_fit(map<double, double> &m,  map<double, double> &m_err)
 {
-  TF1 *tf = new TF1("tf", eff_fun, 50, 4000, 7);
+  gStyle->SetOptFit(1111);
+
+  TF1 *tf = new TF1("tf", eff_fun, 50, 2048, 7);
   
   /*
   tf->SetParameters(5.42, 3.73, 0., 7.03, -0.65, -0.14, 15.);
@@ -46,18 +84,30 @@ void eff_fit(map<double, double> &m)
   tf->Draw();
   */
 
-  TGraph *gr = new TGraph();
+  TGraphErrors *gr = new TGraphErrors();
 
   int i = 0;
   for(auto it=m.begin();it!=m.end();it++){
     gr->SetPoint(i, it->first, it->second);
     i++;
   }
+  i = 0;
+  for(auto it=m_err.begin();it!=m_err.end();it++){
+    gr->SetPointError(i, 0, it->second);
+    cout << it->second << endl;
+    i++;
+  }
 
   delete gROOT->GetListOfCanvases()->FindObject("cc");
   TCanvas *cc = new TCanvas("cc", "", 0, 0, 480, 360);
   cc->cd();
-  gr->Draw("AP*");
+
+  gr->GetXaxis()->SetTitle("Energy [keV]");
+  gr->GetYaxis()->SetTitle("Amplitude");
+  gr->SetMarkerColor(4);
+  gr->SetMarkerStyle(21);
+  gr->SetMarkerSize(1);
+  gr->Draw("AP");  
 
   tf->SetParameter(0, 5.);
   tf->SetParameter(1, 4.);
@@ -69,193 +119,389 @@ void eff_fit(map<double, double> &m)
 
   gr->Fit("tf");
 
-  gr->GetXaxis()->SetRangeUser(0, 3000);
-  // gr->GetYaxis()->SetRangeUser(0, 2500);
+  //
+  double err_all = 0.;
+  i = 0;
+  for(auto it=m.begin();it!=m.end();it++){
+    err_all += (tf->Eval(it->first)-it->second)*(tf->Eval(it->first)-it->second)/tf->Eval(it->first)/tf->Eval(it->first);
+    cout << err_all << endl;
+    i++;
+  }
+  err_all /= (double)m.size();
+  cout << sqrt(err_all) << endl;
+
+  TLatex *lt = new TLatex(0.3, 0.8, Form("eff error %0.4f%%",100.*sqrt(err_all)));
+  lt->SetNDC();
+  lt->SetTextSize(0.04);
+  lt->SetTextColor(kBlack);
+  lt->Draw();
+
+  double max = tf->GetMaximum();
+  cout << "max " << max << endl;
+
+  int ii = 0;
+  for(auto& [key, value] : m_interested_eff_err){
+    value.first  = tf->Eval(key)/max;
+    value.second = tf->Eval(key)/max*sqrt(err_all);
+    ++ii;
+  }
+
+  for(auto &[key,value]:m_interested_eff_err){
+    cout << "{" << key << ", {" << value.first << ", " << value.second << "}}," << endl;
+  }
+
   cc->Update();
-  cc->SaveAs(TString::Format("./fig/single_hpge.png").Data());
+  cc->SaveAs(Form("./fig/ring%02d_sector%02d_eff.png",ring,sector));
+
+  return tf->GetParameters();
 }
 
 //
-void eff_cali_single_ge(int ring, int sector)
+void eff_cali_single_ge(int r, int s)
 {
-  //
-  map<double, double> m_133Ba;
-  m_133Ba.insert(std::make_pair(80.999, 34.11));
-  m_133Ba.insert(std::make_pair(302.858, 18.30));
-  m_133Ba.insert(std::make_pair(356.014, 61.94));
-  m_133Ba.insert(std::make_pair(383.859, 8.905));
-
-  map<double, pair<double, double>> m_133Ba_x1x2;
-  m_133Ba_x1x2[80.999] = make_pair(0.98, 1.02);
-  m_133Ba_x1x2[276.404] = make_pair(0.99, 1.01);
-  m_133Ba_x1x2[302.858] = make_pair(0.99, 1.01);
-  m_133Ba_x1x2[356.014] = make_pair(0.99, 1.01);
-  m_133Ba_x1x2[383.859] = make_pair(0.99, 1.01);
+  ring = r;
+  sector = s;
 
   //
-  map<double, double> m_152Eu;
-  m_152Eu.insert(std::make_pair(121.783, 28.37));
-  m_152Eu.insert(std::make_pair(244.692, 7.53));
-  m_152Eu.insert(std::make_pair(344.275, 26.57));
-  m_152Eu.insert(std::make_pair(411.115, 2.238));
-  m_152Eu.insert(std::make_pair(443.976, 3.125));
-  m_152Eu.insert(std::make_pair(778.303, 12.97));
-  m_152Eu.insert(std::make_pair(867.388, 4.214));
-  m_152Eu.insert(std::make_pair(964.131, 14.63));
-  m_152Eu.insert(std::make_pair(1112.116, 13.54));
-  m_152Eu.insert(std::make_pair(1408.001, 20.85));
-  
-  map<double, pair<double, double>> m_152Eu_x1x2;
-  m_152Eu_x1x2[121.783] = make_pair(0.99, 1.01);
-  m_152Eu_x1x2[244.692] = make_pair(0.99, 1.01);
-  m_152Eu_x1x2[344.275] = make_pair(0.99, 1.01);
-  m_152Eu_x1x2[411.115] = make_pair(0.991, 1.009);
-  m_152Eu_x1x2[443.976] = make_pair(0.991, 1.009);
-  m_152Eu_x1x2[778.303] = make_pair(0.992, 1.008);
-  m_152Eu_x1x2[867.388] = make_pair(0.994, 1.004);
-  m_152Eu_x1x2[964.131] = make_pair(0.994, 1.004);
-  m_152Eu_x1x2[1112.116] = make_pair(0.998, 1.002);
-  m_152Eu_x1x2[1408.001] = make_pair(0.998, 1.002);
+  map<int, double> m_133Ba;
+  m_133Ba.insert(std::make_pair(81, 34.06));
+  m_133Ba.insert(std::make_pair(303, 18.33));
+  m_133Ba.insert(std::make_pair(356, 62.05));
+  m_133Ba.insert(std::make_pair(384, 8.94));
 
+  //
+  map<int, double> m_152Eu;
+  m_152Eu.insert(std::make_pair(122, 28.58));
+  m_152Eu.insert(std::make_pair(245, 7.58));
+  m_152Eu.insert(std::make_pair(344, 26.5));
+  m_152Eu.insert(std::make_pair(411, 2.234));
+  m_152Eu.insert(std::make_pair(444, 3.148));
+  m_152Eu.insert(std::make_pair(779, 12.94));
+  m_152Eu.insert(std::make_pair(867, 4.245));
+  m_152Eu.insert(std::make_pair(964, 14.60));
+  m_152Eu.insert(std::make_pair(1112, 13.64));
+  m_152Eu.insert(std::make_pair(1408, 21.00));
 
-  TCanvas *cc = new TCanvas("cc", "", 0, 0, 480, 360);
+  map<int, vector<double>> m_peak_fit_range;
+  ifstream fi("fit_range.txt");
+  if(!fi){
+    cout << "can not open fit_range.txt";
+    return;
+  }
 
-  TH1D *h1 = new TH1D("h1", TString::Format("ge_ring%02d_sector%02d",ring,sector).Data(), 8192, 0, 4096);
-  tr->Draw("ge_energy>>h1", TString::Format("ge_ring_id==%d&&ge_sector_id==%d",ring,sector).Data());
+  string line;
+  getline(fi, line);
 
-  TSpectrum *sp = new TSpectrum();
-  TH1D *h_back = (TH1D*)sp->Background(h1);
-  h_back->SetLineColor(1);
+  int e;
+  double l_bg, l_peak, u_peak, u_bg, ll_ex, lr_ex, hl_ex, hr_ex;
+  while(fi >> e >> l_bg >> l_peak >> u_peak >> u_bg >> ll_ex >> lr_ex >> hl_ex >> hr_ex){
+    m_peak_fit_range[e] = {l_bg, l_peak, u_peak, u_bg, ll_ex, lr_ex, hl_ex, hr_ex};
+  }
+  fi.close();
 
-  TH1D *h_sub = (TH1D*)h1->Clone("h_sub");
+  /*
+  for(auto &pfr:m_peak_fit_range){
+    cout << pfr.first << " ";
+    for(auto &it:pfr.second){
+      cout << it << " ";
+    }
+    cout << endl;
+  }
+  */
 
-  h_sub->Add(h_back, -1);
-  h_sub->SetLineColor(4);
-  cc->cd();
-  h_sub->Draw();
+  get_single_ge_h(ring, sector);
 
   double sum;
-  map<double, double> m_s;
+  map<int, double> m_s;
+  map<int, double> m_s_err;
 
-  int b1 = 0;
-  int b2 = 0;
-  int b_max = 0;
   //
   for(auto it=m_133Ba.begin();it!=m_133Ba.end();it++){
-    double x1 = it->first-20.;
-    double x2 = it->first+20.;
-    h_sub->GetXaxis()->SetRangeUser(x1, x2);
-    h_sub->Fit("gaus", "", "", it->first*m_133Ba_x1x2[it->first].first, it->first*m_133Ba_x1x2[it->first].second);
+    e = it->first;
+    l_bg = m_peak_fit_range[e][0];
+    l_peak = m_peak_fit_range[e][1];
+    u_peak = m_peak_fit_range[e][2];
+    u_bg = m_peak_fit_range[e][3];
+    ll_ex = m_peak_fit_range[e][4];
+    lr_ex = m_peak_fit_range[e][5];
+    hl_ex = m_peak_fit_range[e][6];
+    hr_ex = m_peak_fit_range[e][7];
 
-    b_max = (int)it->first*2;
-    while(1){
-      if(h_sub->GetBinContent(b_max) < h_sub->GetBinContent(b_max+1)){
-        b_max++;
-      }else{
-        break;
-      }
-    }
-    while(1){
-      if(h_sub->GetBinContent(b_max) < h_sub->GetBinContent(b_max-1)){
-        b_max--;
-      }else{
-        break;
-      }
-    }
-    cout << h_sub->GetBinContent(b_max) << endl;
+    sum = eff_cali_single_ge_single_peak(h, e, l_bg, l_peak, u_peak, u_bg, ll_ex, lr_ex, hl_ex, hr_ex);
   
-    TF1 *tf = ((TF1*)(gROOT->GetListOfFunctions()->FindObject("gaus")));
-    cout << tf->GetParameter(2) << endl; 
-    int b1 = (int)((tf->GetParameter(1)-2.0*tf->GetParameter(2)+0.5)*2.);
-    int b2 = (int)((tf->GetParameter(1)+2.0*tf->GetParameter(2)+0.5)*2.);
-    cout << "b1 " << b1 << " " << h_sub->GetBinContent(b1) << endl;
-    cout << "b2 " << b2 << " " << h_sub->GetBinContent(b2) << endl;
-
-    sum = 0;
-    for(int i=b1;i<=b2;i++){
-      sum += h_sub->GetBinContent(i);
-    }
-    m_s.insert(std::make_pair(it->first, sum)); 
-
-    TLine *l1 = new TLine(h_sub->GetBinCenter(b1), 0., h_sub->GetBinCenter(b1), h_sub->GetBinContent(b_max));
-    TLine *l2 = new TLine(h_sub->GetBinCenter(b2), 0., h_sub->GetBinCenter(b2), h_sub->GetBinContent(b_max));
-    l1->SetLineColor(1);
-    l1->SetLineWidth(2);
-    l1->SetLineStyle(2);
-    l2->SetLineColor(1);
-    l2->SetLineWidth(2);
-    l2->SetLineStyle(2);
-    l1->Draw("same");
-    l2->Draw("same");
-    
-    cc->Update();
-    cc->SaveAs(TString::Format("./fig/133Ba_%dkeV.png",(int)it->first).Data());
+    m_s[e] = sum;
+    m_s_err[e] = sqrt(sum);
   }
 
   //
   for(auto it=m_152Eu.begin();it!=m_152Eu.end();it++){
-    double x1 = it->first-20.;
-    double x2 = it->first+20.;
-    h_sub->GetXaxis()->SetRangeUser(x1, x2);
-    h_sub->Fit("gaus", "", "", it->first*m_152Eu_x1x2[it->first].first, it->first*m_152Eu_x1x2[it->first].second);
+    e = it->first;
+    l_bg = m_peak_fit_range[e][0];
+    l_peak = m_peak_fit_range[e][1];
+    u_peak = m_peak_fit_range[e][2];
+    u_bg = m_peak_fit_range[e][3];
+    ll_ex = m_peak_fit_range[e][4];
+    lr_ex = m_peak_fit_range[e][5];
+    hl_ex = m_peak_fit_range[e][6];
+    hr_ex = m_peak_fit_range[e][7];
 
-    b_max = (int)it->first*2;
-    while(1){
-      if(h_sub->GetBinContent(b_max) < h_sub->GetBinContent(b_max+1)){
-        b_max++;
-      }else{
-        break;
-      }
-    }
-    while(1){
-      if(h_sub->GetBinContent(b_max) < h_sub->GetBinContent(b_max-1)){
-        b_max--;
-      }else{
-        break;
-      }
-    }
-    cout << h_sub->GetBinContent(b_max) << endl;
+    sum = eff_cali_single_ge_single_peak(h, e, l_bg, l_peak, u_peak, u_bg, ll_ex, lr_ex, hl_ex, hr_ex);
   
-    TF1 *tf = ((TF1*)(gROOT->GetListOfFunctions()->FindObject("gaus")));
-    cout << tf->GetParameter(2) << endl; 
-    int b1 = (int)((tf->GetParameter(1)-2.0*tf->GetParameter(2)+0.5)*2.);
-    int b2 = (int)((tf->GetParameter(1)+2.0*tf->GetParameter(2)+0.5)*2.);
-    cout << "b1 " << b1 << " " << h_sub->GetBinContent(b1) << endl;
-    cout << "b2 " << b2 << " " << h_sub->GetBinContent(b2) << endl;
-
-    sum = 0;
-    for(int i=b1;i<=b2;i++){
-      sum += h_sub->GetBinContent(i);
-    }
-    m_s.insert(std::make_pair(it->first, sum)); 
-
-    TLine *l1 = new TLine(h_sub->GetBinCenter(b1), 0., h_sub->GetBinCenter(b1), h_sub->GetBinContent(b_max));
-    TLine *l2 = new TLine(h_sub->GetBinCenter(b2), 0., h_sub->GetBinCenter(b2), h_sub->GetBinContent(b_max));
-    l1->SetLineColor(1);
-    l1->SetLineWidth(2);
-    l1->SetLineStyle(2);
-    l2->SetLineColor(1);
-    l2->SetLineWidth(2);
-    l2->SetLineStyle(2);
-    l1->Draw("same");
-    l2->Draw("same");
-    
-    cc->Update();
-    cc->SaveAs(TString::Format("./fig/152Eu_%dkeV.png",(int)it->first).Data());
+    m_s[e] = sum;
+    m_s_err[e] = sqrt(sum);
   }
 
-  //using 356.014(133Ba) and 344.275(152Eu) normlize
+  for(auto it=m_133Ba.begin();it!=m_133Ba.end();it++){
+    cout << m_s[it->first] << " " << m_s_err[it->first] << endl;
+  }
+  for(auto it=m_152Eu.begin();it!=m_152Eu.end();it++){
+    cout << m_s[it->first] << " " << m_s_err[it->first] << endl;
+  }
+
+  //using 356(133Ba) and 344(152Eu) normlize
   map<double, double> m_s2;
-  double frac = (m_s[356.014]/m_133Ba[356.014])/(m_s[344.275]/m_152Eu[344.275]);
+  map<double, double> m_s2_err;
+  double frac = (m_s[356]/m_133Ba[356])/(m_s[344]/m_152Eu[344]);
   cout << "frac " << frac << endl; 
   for(auto it=m_133Ba.begin();it!=m_133Ba.end();it++){
     m_s2.insert(std::make_pair(it->first, m_s[it->first]/it->second));
+    m_s2_err.insert(std::make_pair(it->first, m_s_err[it->first]/it->second));
   }
 
   for(auto it=m_152Eu.begin();it!=m_152Eu.end();it++){
     m_s2.insert(std::make_pair(it->first, frac*m_s[it->first]/it->second));
+    m_s2_err.insert(std::make_pair(it->first, frac*m_s_err[it->first]/it->second));
   }
 
   //
-  eff_fit(m_s2);  
+  for(auto it=m_s2.begin();it!=m_s2.end();it++){
+    cout << it->first << " " << it->second << endl;
+  }
+  for(auto it=m_s2_err.begin();it!=m_s2_err.end();it++){
+    cout << it->first << " " << it->second << endl;
+  }
+
+  //
+  double *par = eff_fit(m_s2, m_s2_err);
+  for(int i=0;i<7;i++){
+    cout << i << " " << par[i] << std::endl;
+  }
+}
+
+//
+void get_single_ge_h(int r, int s)
+{
+
+  tr->Draw("ge_energy>>h", TString::Format("ge_ring_id==%d&&ge_sector_id==%d",r,s).Data(), "goff");  
+
+}
+
+//
+double eff_cali_single_ge_single_peak(TH1D *h, double energy, double l_bg, double l_peak, double u_peak, double u_bg, double ll_ex, double lr_ex, double hl_ex, double hr_ex)
+{
+  gStyle->SetOptFit(1111);
+
+  TCanvas *cc = new TCanvas("cc", "", 0, 0, 480, 360);
+  cc->cd();
+  cc->SetLogy();
+  h->GetXaxis()->SetTitle("Energy [keV]");
+  h->GetYaxis()->SetTitle("Counts");
+  h->Draw();
+
+  //
+  double l_bg_bin = l_bg/h->GetBinWidth(1);
+  double l_peak_bin = l_peak/h->GetBinWidth(1);
+  double u_peak_bin = u_peak/h->GetBinWidth(1);
+  double u_bg_bin = u_bg/h->GetBinWidth(1);
+  
+  h->GetXaxis()->SetRangeUser(l_bg-10., u_bg+10.);
+
+  // Fit peak
+  Double_t par[12];
+  par[0] = energy;
+  par[1] = h->GetBinContent((l_peak_bin+u_peak_bin)/2.);
+  // Gaussian
+  par[2] = 1.0;
+  // Left-Skew
+  par[3] = 0.005;
+  par[4] = 1.;
+  // Step
+  par[5] = 0.02;
+  // Background
+  par[6] = h->GetBinContent(l_bg_bin);
+  par[7] = 0.;
+  
+  par[8] = ll_ex;
+  par[9] = lr_ex;
+  par[10] = hl_ex;
+  par[11] = hr_ex;
+
+  TF1 *gpeakexregion_tf = new TF1("gpeakexregion_tf", gpeakexregion, l_bg, u_bg, 12);
+  gpeakexregion_tf->SetParameters(par);
+
+  gpeakexregion_tf->SetParLimits(0, par[0]-2., par[0]+2.);
+  gpeakexregion_tf->SetParLimits(2, 0.1, 10.);
+  gpeakexregion_tf->SetParLimits(3, 0.001, 20.);
+  gpeakexregion_tf->SetParLimits(4, 0.001, 20.);
+  gpeakexregion_tf->SetParLimits(5, 0.0001, 1.);
+  
+  gpeakexregion_tf->FixParameter(8, par[8]);
+  gpeakexregion_tf->FixParameter(9, par[9]);
+  gpeakexregion_tf->FixParameter(10, par[10]);
+  gpeakexregion_tf->FixParameter(11, par[11]);
+
+  h->Fit("gpeakexregion_tf", "R");
+
+  //
+  TF1 *gstep_tf = new TF1("gstep_tf", gpeak, l_bg, u_bg, 5);
+  gstep_tf->SetParameter(0, gpeakexregion_tf->GetParameter(0));
+  gstep_tf->SetParameter(1, gpeakexregion_tf->GetParameter(1));
+  gstep_tf->SetParameter(2, gpeakexregion_tf->GetParameter(2));
+  gstep_tf->SetParameter(3, gpeakexregion_tf->GetParameter(3));
+  gstep_tf->SetParameter(4, gpeakexregion_tf->GetParameter(4));
+
+  gstep_tf->SetLineColor(9);
+  gstep_tf->Draw("same");
+
+  //
+  TF1 *bgstep_tf = new TF1("bgstep_tf", bgstep, l_bg, u_bg, 5);
+  bgstep_tf->SetParameter(0, gpeakexregion_tf->GetParameter(6));
+  bgstep_tf->SetParameter(1, gpeakexregion_tf->GetParameter(7));
+  bgstep_tf->SetParameter(2, gpeakexregion_tf->GetParameter(0));
+  bgstep_tf->SetParameter(3, gpeakexregion_tf->GetParameter(2));
+  bgstep_tf->SetParameter(4, gpeakexregion_tf->GetParameter(1)*gpeakexregion_tf->GetParameter(5));
+  bgstep_tf->SetLineColor(3);
+  bgstep_tf->Draw("same");
+
+  //
+  double gamma = gpeakexregion_tf->GetParameter(1);
+  double delta = gpeakexregion_tf->GetParameter(2);
+  double a = gpeakexregion_tf->GetParameter(3);
+  double beta = gpeakexregion_tf->GetParameter(4);
+
+  double sum = delta*sqrt(TMath::Pi());
+  sum += a*beta*exp(-delta*delta/4./beta/beta);
+  sum *= gamma;
+
+  TLatex *lt_e = new TLatex(0.15, 0.8, Form("energy %0.4f keV",gpeakexregion_tf->GetParameter(0)));
+  lt_e->SetNDC();
+  lt_e->SetTextSize(0.04);
+  lt_e->SetTextColor(kBlack);
+  lt_e->Draw();
+
+  TLatex *lt_result = new TLatex(0.15, 0.7, Form("area %0.2f (%0.2f)",sum,sqrt(sum)));
+  lt_result->SetNDC();
+  lt_result->SetTextSize(0.04);
+  lt_result->SetTextColor(kBlack);
+  lt_result->Draw();
+
+  TLatex *lt_result2 = new TLatex(0.15, 0.6, Form("area %0.2f (%0.2f)",par[1],sqrt(par[1])));
+  lt_result2->SetNDC();
+  lt_result2->SetTextSize(0.04);
+  lt_result2->SetTextColor(kBlack);
+  lt_result2->Draw();
+  
+  cc->Update();
+  cc->SaveAs(Form("./fig/ring%02d_sector%02d_%dkeV.png",ring,sector,(int)energy));
+
+  delete gpeakexregion_tf;
+  delete gstep_tf;
+  delete bgstep_tf;
+
+  return sum;
+
+}
+
+// pars = 12
+// Gaussian + Left-Skew + Step + Background
+Double_t gpeakexregion(Double_t *v, Double_t *par)
+{
+
+  if(v[0]>par[8] && v[0]<par[9]){// low exclude region
+    TF1::RejectPoint();
+    return 0;
+  }
+  if(v[0]>par[10] && v[0]<par[11]){// high exclude region
+    TF1::RejectPoint();
+    return 0;
+  }
+  
+  Double_t energy  = par[0];
+  Double_t gamma  = par[1];
+
+  // Gaussian
+  Double_t delta = par[2];
+  // Left-Skew
+  Double_t a = par[3];
+  Double_t beta = par[4];
+  // Step
+  Double_t s = par[5];
+  // Background
+  Double_t bg0 = par[6];
+  Double_t bg1 = par[7];
+
+  // Gaussian
+  Double_t gaussian = gamma*exp(-pow((v[0]-energy)/delta, 2.));
+
+  // Left-Skew
+  Double_t left_skew = gamma*1/2.*a*exp((v[0]-energy)/beta);
+  left_skew *= erfc(delta/2./beta + (v[0]-energy)/delta);
+
+  // Step
+  Double_t step = gamma*s*1/2.*erfc((v[0]-energy)/delta);
+
+  // Background
+  Double_t background = bg0+bg1*v[0];
+
+  //
+  Double_t result = gaussian+left_skew+step+background; 
+
+  return result;
+
+}
+
+// pars 5
+// Step + Pol1
+Double_t bgstep(Double_t *v, Double_t *par)
+{
+
+  Double_t p0 = par[0];
+  Double_t p1 = par[1];
+  Double_t energy = par[2];
+  Double_t delta  = par[3];
+  Double_t step   = par[4];
+
+  Double_t result = p0 + p1*v[0];
+  result += step*1/2.*erfc((v[0]-energy)/delta);
+   
+  return result;
+   
+}
+
+// pars = 5
+// Gaussian + Left-Skew
+Double_t gpeak(Double_t *v, Double_t *par)
+{
+  
+  Double_t energy  = par[0];
+  Double_t gamma  = par[1];
+
+  // Gaussian
+  Double_t delta = par[2];
+  // Left-Skew
+  Double_t a = par[3];
+  Double_t beta = par[4];
+
+  // Gaussian
+  Double_t gaussian = gamma*exp(-pow((v[0]-energy)/delta, 2.));
+
+  // Left-Skew
+  Double_t left_skew = gamma*1/2.*a*exp((v[0]-energy)/beta);
+  left_skew *= erfc(delta/2./beta + (v[0]-energy)/delta);
+
+  //
+  Double_t result = gaussian+left_skew; 
+
+  return result;
+
 }

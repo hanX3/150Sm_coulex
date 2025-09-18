@@ -23,16 +23,17 @@ public:
 
   void Process();
 
-  void GetS3FrontBackData(TString tr_name, double abs_time1, double abs_time2);
+  void GetS3FrontBackDataPrompt();
+  void GetS3FrontBackDataRandom();
   void SaveFile();
 
 private:
-  std::map<int, std::vector<double>> map_cali_data;
+  std::map<int, std::vector<double>> map_cali;
+  std::map<int, std::vector<double>> map_s3_sector_cor, map_s3_ring_cor; // key is id 
+  std::map<int, double> map_s3_sector_att, map_s3_ring_att; // key is id
   std::map<int, double> map_ts_offset;
 
-private:
-  std::map<int, int> map_ring_id;
-  std::map<int, int> map_sector_id;
+  std::map<int, int> map_s3_sector_id, map_s3_ring_id;
 
 private:
   bool ReadCaliData();
@@ -41,6 +42,9 @@ private:
   bool ReadS3CorData();
   void PrintS3CorData();
 
+  bool ReadS3AttData();
+  void PrintS3AttData();
+
   bool ReadTSOffsetData();
   void PrintTSOffsetData();
 
@@ -48,13 +52,16 @@ private:
   void PrintMapSectorRingID();
 
 private:
-  Short_t GetID(int crate, int slot, int channel);
-  double CaliEnergy(int adc, int crate, int slot, int channel);
-  Long64_t GetTSns(Long64_t ts, int sr, int crate, int slot, int channel);
+  Short_t GetID();
+  double GetEnergy();
+  Long64_t GetTSns();
 
 private:
   TBenchmark *benchmark;  
-  TRandom3 *rndm;  
+  TRandom3 *rndm;
+
+  double coin_width;
+  double jump_width;
 
 private:
   Int_t run;

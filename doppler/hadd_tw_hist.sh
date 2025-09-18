@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
-l_win=(50 100 150 200 250)
-l_conf=("a" "b" "c" "d" "e")
+l_win=(50 100 150 200 300)
+l_conf=("e")
 
 for win in "${l_win[@]}"; do
   for conf in "${l_conf[@]}"; do

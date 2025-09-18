@@ -38,8 +38,11 @@ private:
   bool ReadCaliData();
   void PrintCaliData();
 
-  bool ReadTSOffset();
-  void PrintTSOffset();
+  bool ReadS3CorData();
+  void PrintS3CorData();
+
+  bool ReadTSOffsetData();
+  void PrintTSOffsetData();
 
   bool InitMapSectorRingID();
   void PrintMapSectorRingID();

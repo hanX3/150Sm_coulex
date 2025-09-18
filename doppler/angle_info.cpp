@@ -170,6 +170,7 @@ bool angle_info::InitEinEoutInfo()
     fi_p >> theta_p >> e_in >> e_out;
     if(!fi_p.good()) break;
 
+    theta_p = std::round(theta_p * 100.0) / 100.0;
     std::sprintf(c_theta_p, "%.2f", theta_p);
     map_theta_ein_eout_p[c_theta_p] = std::make_pair(e_in, e_out);
   }
@@ -189,6 +190,8 @@ bool angle_info::InitEinEoutInfo()
     fi_r >> theta_p >> theta_r >> e_in >> e_out;
     if(!fi_r.good()) break;
 
+    theta_p = std::round(theta_p * 100.0) / 100.0;
+    theta_r = std::round(theta_r * 100.0) / 100.0;
     std::sprintf(c_theta_p, "%.2f", theta_p);
     std::sprintf(c_theta_r, "%.2f", theta_r);
     map_theta_ein_eout_r[c_theta_r] = std::make_pair(e_in, e_out);
@@ -236,6 +239,7 @@ void angle_info::PrintThetaP2RInfo()
 double angle_info::GetRecoilTheta(double theta_p)
 {
   char c_theta_p[32];
+  theta_p = std::round(theta_p * 100.0) / 100.0;
   std::sprintf(c_theta_p, "%.2f", theta_p);
 
   return map_theta_p2r[c_theta_p];
@@ -253,6 +257,7 @@ double angle_info::ComputeProjectileBeta(double theta, double dt)
   double half_target_thickness = TARGETTHICKNESS/2.;
 
   char c_theta[32];
+  theta = std::round(theta * 100.0) / 100.0;
   std::sprintf(c_theta, "%.2f", theta);
 
   double e_in = map_theta_ein_eout_p[c_theta].first;
@@ -289,6 +294,7 @@ double angle_info::ComputeRecoilBeta(double theta, double dt)
   double half_target_thickness = TARGETTHICKNESS/2.;
 
   char c_theta[32];
+  theta = std::round(theta * 100.0) / 100.0;
   std::sprintf(c_theta, "%.2f", theta);
 
   double e_in = map_theta_ein_eout_r[c_theta].first;

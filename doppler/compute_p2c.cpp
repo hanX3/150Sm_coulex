@@ -6,7 +6,7 @@ void compute_p2c()
     "data0472_0718_doppler_100ns_e_hist",
     "data0472_0718_doppler_250ns_jump_250ns_e_hist",
     "data0472_0718_doppler_200ns_jump_200ns_e_hist",
-    "data0472_0718_doppler_150ns_jump_150ns_e_hist",
+    "data0472_0718_doppler_150ns_jump_250ns_e_hist",
     "data0472_0718_doppler_100ns_jump_100ns_e_hist",
     "data0472_0718_doppler_50ns_jump_50ns_e_hist"
   };

@@ -473,7 +473,7 @@ void build::GetGeSpiderS3EventRandom()
 
   std::stringstream ss;
   ss.str("");
-  ss << "random coincidence window [" << t_min_rand << ", " << t_max_rand << "] ns" ;
+  ss << "random coincidence window [" << t_min_rand << ", " << t_max_rand << "] ns";
   TTree *tr = new TTree("tr_bg", ss.str().c_str());
 
   //

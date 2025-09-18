@@ -37,15 +37,30 @@ build::build(const std::string &filename_in, const std::string &filename_out, in
     throw std::invalid_argument("wrong run number.");
   }
 
-  if(!ReadTSOffset()){
+  if(!ReadTSOffsetData()){
     throw std::invalid_argument("can not read ts offset data.");
   }
-  PrintTSOffset();
+  PrintTSOffsetData();
 
   if(!ReadCaliData()){
     throw std::invalid_argument("can not read cali data.");
   }
   PrintCaliData();
+
+#ifdef OPENS3COR
+  if(!ReadS3CorData()){
+    throw std::invalid_argument("can not read s3 cor data.");
+  }
+  PrintS3CorData();
+#else
+  for(int i=1;i<=32;i++){
+    map_s3_sector_cor_data[i] = {0, 1};
+  }
+  for(int i=1;i<=24;i++){
+    map_s3_ring_cor_data[i] = {0, 1};
+  }
+  PrintS3CorData();
+#endif
 
   if(!InitMapSectorRingID()){
     throw std::invalid_argument("can not init map for sector and ring id");
@@ -391,7 +406,68 @@ void build::PrintCaliData()
 }
 
 //
-bool build::ReadTSOffset()
+bool build::ReadS3CorData() 
+{
+  int id;
+  double par0, par1;
+
+  std::string line;
+
+  std::ifstream fi_fb_cor_sector(TString::Format("../pars/run_fb_cor/correction_sector_%04d.txt",run).Data());
+  if(!fi_fb_cor_sector){
+    std::cout << "can not open sector correction file." << std::endl;
+    return 0;
+  }else{
+    std::getline(fi_fb_cor_sector, line);
+    
+    while(1){
+      fi_fb_cor_sector >> id >> par0 >> par1;
+      if(!fi_fb_cor_sector.good()) break;
+
+      map_s3_sector_cor_data[id] = {par0, par1};
+    }
+    fi_fb_cor_sector.close();
+  }
+
+  std::ifstream fi_fb_cor_ring(TString::Format("../pars/run_fb_cor/correction_ring_%04d.txt",run).Data());
+  if(!fi_fb_cor_ring){
+    std::cout << "can not open ring correction file." << std::endl;
+    return 0;
+  }else{
+    std::getline(fi_fb_cor_ring, line);
+    
+    while(1){
+      fi_fb_cor_ring >> id >> par0 >> par1;
+      if(!fi_fb_cor_ring.good()) break;
+
+      map_s3_ring_cor_data[id] = {par0, par1};
+    }
+    fi_fb_cor_ring.close();
+  }
+
+  return 1;
+}
+
+//
+void build::PrintS3CorData()
+{
+  std::cout << "\nstart print s3 cor data" << std::endl;
+
+  std::cout << "\nfor sector ..." << std::endl;
+  std::map<int, std::vector<double>>::iterator it_sector = map_s3_sector_cor_data.begin();
+  for(;it_sector!=map_s3_sector_cor_data.end();it_sector++){
+    std::cout << it_sector->first << " => " << it_sector->second[0] << " " << it_sector->second[1] << '\n';
+  }
+
+  std::cout << "\nfor ring ..." << std::endl;
+  std::map<int, std::vector<double>>::iterator it_ring = map_s3_ring_cor_data.begin();
+  for(;it_ring!=map_s3_ring_cor_data.end();it_ring++){
+    std::cout << it_ring->first << " => " << it_ring->second[0] << " " << it_ring->second[1] << '\n';
+  }
+}
+
+//
+bool build::ReadTSOffsetData()
 {
   std::cout << "start read ts offset data" << std::endl;
 
@@ -434,7 +510,7 @@ bool build::ReadTSOffset()
 }
 
 //
-void build::PrintTSOffset()
+void build::PrintTSOffsetData()
 {
   std::cout << "start print ts offset data" << std::endl;
 

@@ -341,8 +341,8 @@ double eff_cali_single_ge_single_peak(TH1D *h, double energy, double l_bg, doubl
 
   gpeakexregion_tf->SetParLimits(0, par[0]-2., par[0]+2.);
   gpeakexregion_tf->SetParLimits(2, 0.1, 10.);
-  gpeakexregion_tf->SetParLimits(3, 0.001, 20.);
-  gpeakexregion_tf->SetParLimits(4, 0.001, 20.);
+  gpeakexregion_tf->SetParLimits(3, 0.001, 10.);
+  gpeakexregion_tf->SetParLimits(4, 0.001, 10.);
   gpeakexregion_tf->SetParLimits(5, 0.0001, 1.);
   
   gpeakexregion_tf->FixParameter(8, par[8]);

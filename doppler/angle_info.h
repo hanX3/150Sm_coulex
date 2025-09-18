@@ -7,6 +7,8 @@
 #include <vector>
 #include <string>
 
+#include "TString.h"
+
 //
 class angle_info{
 public:

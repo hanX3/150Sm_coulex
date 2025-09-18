@@ -1,6 +1,8 @@
 #ifndef SET_H
 #define SET_H
 
+//#define OPENS3COR
+
 constexpr int nMaxS3Ring = 24;
 constexpr int nMaxS3Sector = 32;
 

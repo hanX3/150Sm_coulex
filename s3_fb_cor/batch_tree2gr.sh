@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-max_jobs=60
+max_jobs=120
 
 while read run; do
   root -b -q "tree2gr.cpp($run)" &

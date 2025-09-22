@@ -1,7 +1,7 @@
 //
 void tree2gr_sector(int run)
 {
-  TFile *fi = TFile::Open(TString::Format("../rootfile/si/data%04d_build_s3_200ns.root", run).Data());
+  TFile *fi = TFile::Open(TString::Format("../rootfile/si/data%04d_build_s3_200ns_no_s3cor.root", run).Data());
   if(fi->IsZombie()){
     cout << "can not open rootfile." << endl;
     return;
@@ -44,7 +44,7 @@ void tree2gr_sector(int run)
 //
 void tree2gr_ring(int run)
 {
-  TFile *fi = TFile::Open(TString::Format("../rootfile/si/data%04d_build_s3_200ns.root", run).Data());
+  TFile *fi = TFile::Open(TString::Format("../rootfile/si/data%04d_build_s3_200ns_no_s3cor.root", run).Data());
   if(fi->IsZombie()){
     cout << "can not open rootfile." << endl;
     return;

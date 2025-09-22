@@ -1,7 +1,7 @@
 //
 void tree2hist_sector(int run)
 {
-  TFile *fi = TFile::Open(TString::Format("../rootfile/si/data%04d_build_s3_200ns_no_s3cor.root", run).Data());
+  TFile *fi = TFile::Open(TString::Format("../rootfile/si/data%04d_build_s3_200ns_no_s3att_no_s3cor.root", run).Data());
   if(fi->IsZombie()){
     cout << "can not open rootfile." << endl;
     return;
@@ -23,7 +23,7 @@ void tree2hist_sector(int run)
     n = tr->Draw(draw_str.Data(), cut_str.Data(), "goff");
   }
 
-  TFile *fo = new TFile(TString::Format("../rootfile/si/data%04d_sector_hist_no_s3cor.root", run).Data(), "recreate");
+  TFile *fo = new TFile(TString::Format("../rootfile/si/data%04d_sector_hist_no_s3att_no_s3cor.root", run).Data(), "recreate");
 
   fo->cd();
   for(int i=0;i<32;i++){
@@ -38,7 +38,7 @@ void tree2hist_sector(int run)
 //
 void tree2hist_ring(int run)
 {
-  TFile *fi = TFile::Open(TString::Format("../rootfile/si/data%04d_build_s3_200ns_no_s3cor.root", run).Data());
+  TFile *fi = TFile::Open(TString::Format("../rootfile/si/data%04d_build_s3_200ns_no_s3att_no_s3cor.root", run).Data());
   if(fi->IsZombie()){
     cout << "can not open rootfile." << endl;
     return;
@@ -60,7 +60,7 @@ void tree2hist_ring(int run)
     n = tr->Draw(draw_str.Data(), cut_str.Data(), "goff");
   }
 
-  TFile *fo = new TFile(TString::Format("../rootfile/si/data%04d_ring_hist_no_s3cor.root", run).Data(), "recreate");
+  TFile *fo = new TFile(TString::Format("../rootfile/si/data%04d_ring_hist_no_s3att_no_s3cor.root", run).Data(), "recreate");
 
   fo->cd();
   for(int i=0;i<24;i++){

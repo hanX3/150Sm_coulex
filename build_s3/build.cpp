@@ -698,13 +698,8 @@ double build::GetEnergy()
 
   double e = map_cali[key][0]+evte*map_cali[key][1]+evte*evte*map_cali[key][2]+rndm->Uniform(-5.,5.);
 
-  if(map_s3_sector_id.find(key)!=map_s3_sector_id.end()){
-    e = map_s3_sector_cor[map_s3_sector_id[key]][0]+e*map_s3_sector_cor[map_s3_sector_id[key]][1];
-  }
-  if(map_s3_ring_id.find(key)!=map_s3_ring_id.end()){
-    e = map_s3_ring_cor[map_s3_ring_id[key]][0]+e*map_s3_ring_cor[map_s3_ring_id[key]][1];
-  }
-
+  // modified
+  if(cid==1 && sid==11) e *= 10.;
   if((run>475&&run<616) || (run>=680&&run<=718)){
     if(sid==2){
       e *= 4.;
@@ -715,6 +710,23 @@ double build::GetEnergy()
       e *= 4.;
     }
   }
+
+  // s3att
+  if(map_s3_sector_id.find(key)!=map_s3_sector_id.end()){
+    e *= map_s3_sector_att[map_s3_sector_id[key]];
+  }
+  if(map_s3_ring_id.find(key)!=map_s3_ring_id.end()){
+    e *= map_s3_ring_att[map_s3_ring_id[key]];
+  }
+
+  // s3cor
+  if(map_s3_sector_id.find(key)!=map_s3_sector_id.end()){
+    e = map_s3_sector_cor[map_s3_sector_id[key]][0]+e*map_s3_sector_cor[map_s3_sector_id[key]][1];
+  }
+  if(map_s3_ring_id.find(key)!=map_s3_ring_id.end()){
+    e = map_s3_ring_cor[map_s3_ring_id[key]][0]+e*map_s3_ring_cor[map_s3_ring_id[key]][1];
+  }
+
   return e;
 }
 

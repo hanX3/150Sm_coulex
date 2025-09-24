@@ -19,4 +19,4 @@ while read run; do
   while [ "$(jobs -p | wc -l)" -ge "$max_jobs" ]; do
     wait -n
   done
-done < "./run.txt"
+done < "../pars/run.txt"

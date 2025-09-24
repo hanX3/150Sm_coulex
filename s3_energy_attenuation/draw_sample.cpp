@@ -1,7 +1,7 @@
 //
 void draw_ring(int run)
 {
-  TFile *fi = TFile::Open(TString::Format("../rootfile/si/data%04d_ring_hist.root", run).Data());
+  TFile *fi = TFile::Open(TString::Format("../rootfile/si/data%04d_ring_hist_no_s3att_no_s3cor.root", run).Data());
   if(fi->IsZombie()){
     cout << "can not open rootfile." << endl;
     return;
@@ -29,7 +29,7 @@ void draw_ring(int run)
 //
 void draw_sector(int run)
 {
-  TFile *fi = TFile::Open(TString::Format("../rootfile/si/data%04d_sector_hist.root", run).Data());
+  TFile *fi = TFile::Open(TString::Format("../rootfile/si/data%04d_sector_hist_no_s3att_no_s3cor.root", run).Data());
   if(fi->IsZombie()){
     cout << "can not open rootfile." << endl;
     return;

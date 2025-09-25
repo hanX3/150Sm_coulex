@@ -7,6 +7,7 @@ void draw_sample_single()
   TFile *fi = TFile::Open("../rootfile/si/data0616_build_s3_200ns_no_s3cor.root");
   TTree *tr_event = (TTree*)fi->Get("tr_event");
 
+  /*
   TH2D *hh = new TH2D("hh", "", 10000,0,100000,10000,0,100000);
   hh->GetXaxis()->SetTitle("ring energy [keV]");
   hh->GetYaxis()->SetTitle("sector energy [keV]");
@@ -18,8 +19,34 @@ void draw_sample_single()
   cc->cd();
   cc->SetLogz();
   hh->Draw("colz");
-
   cc->SaveAs("fig/cc.png");
+  */
+
+  //
+  TH1D *h_sector = new TH1D("h_sector", "", 32, 0, 32);
+  tr_event->Draw("n_s3_sector>>h_sector", "s3_sector_energy>800", "goff", tr_event->GetEntries()/32);
+  h_sector->GetXaxis()->SetTitle("n s3 sector");
+  h_sector->GetYaxis()->SetTitle("counts");
+
+  TCanvas *cc_sector = new TCanvas("cc_sector", "", 0, 0, 600, 400);
+  cc_sector->cd();
+  cc_sector->SetLogy();
+  h_sector->Draw("");
+
+  cc_sector->SaveAs("fig/cc_sector.png");
+
+  //
+  TH1D *h_ring = new TH1D("h_ring", "", 24, 0, 24);
+  tr_event->Draw("n_s3_ring>>h_ring", "s3_ring_energy>200.", "goff", tr_event->GetEntries()/32);
+  h_ring->GetXaxis()->SetTitle("n s3 sector");
+  h_ring->GetYaxis()->SetTitle("counts");
+
+  TCanvas *cc_ring = new TCanvas("cc_ring", "", 0, 0, 600, 400);
+  cc_ring->cd();
+  cc_ring->SetLogy();
+  h_ring->Draw("");
+
+  cc_sector->SaveAs("fig/cc_ring.png");
 }
 
 //
@@ -34,7 +61,7 @@ void draw_sector(int run)
   //
   TFile *fi;
   TGraph *hh[32];
-  fi = TFile::Open(TString::Format("../rootfile/si/data%04d_gr2.root", run).Data());
+  fi = TFile::Open(TString::Format("../rootfile/si/data%04d_gr_fast.root", run).Data());
   if(fi->IsZombie()){
     cout << "wrong rootfile." << endl;
     return;
@@ -75,7 +102,7 @@ void draw_ring(int run)
   //
   TFile *fi;
   TGraph *hh[24];
-  fi = TFile::Open(TString::Format("../rootfile/si/data%04d_gr2.root", run).Data());
+  fi = TFile::Open(TString::Format("../rootfile/si/data%04d_gr_fast.root", run).Data());
   if(fi->IsZombie()){
     cout << "wrong rootfile." << endl;
     return;

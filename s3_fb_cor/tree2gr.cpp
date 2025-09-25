@@ -7,7 +7,7 @@ void tree2gr_sector(int run)
     return;
   }
 
-  TTree *tr = (TTree*)fi->Get("tr_s3");
+  TTree *tr = (TTree*)fi->Get("tr_event");
   TH2D *hh_for_sector[32];
   TGraph *gr[32];
 
@@ -50,7 +50,7 @@ void tree2gr_ring(int run)
     return;
   }
 
-  TTree *tr = (TTree*)fi->Get("tr_s3");
+  TTree *tr = (TTree*)fi->Get("tr_event");
   TH2D *hh_for_ring[24];
   TGraph *gr[24];
 

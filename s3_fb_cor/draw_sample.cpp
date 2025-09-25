@@ -2,6 +2,27 @@
 #include <sys/types.h>
 
 //
+void draw_sample_single()
+{
+  TFile *fi = TFile::Open("../rootfile/si/data0616_build_s3_200ns_no_s3cor.root");
+  TTree *tr_event = (TTree*)fi->Get("tr_event");
+
+  TH2D *hh = new TH2D("hh", "", 10000,0,100000,10000,0,100000);
+  hh->GetXaxis()->SetTitle("ring energy [keV]");
+  hh->GetYaxis()->SetTitle("sector energy [keV]");
+
+  Long64_t n = tr_event->Draw("s3_sector_energy:s3_ring_energy>>hh", "", "goff", tr_event->GetEntries()/32);
+  cout << "n " << n << endl;
+
+  TCanvas *cc = new TCanvas("cc", "", 0, 0, 600, 400);
+  cc->cd();
+  cc->SetLogz();
+  hh->Draw("colz");
+
+  cc->SaveAs("fig/cc.png");
+}
+
+//
 void draw_sector(int run)
 {
   gStyle->SetOptStat(0);

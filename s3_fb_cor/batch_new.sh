@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-max_jobs=110
+max_jobs=120
 
 mkdir -p out
 

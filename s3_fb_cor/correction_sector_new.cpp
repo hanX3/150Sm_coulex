@@ -8,7 +8,7 @@ void correction_single(ofstream &fo, int run, int sector, int ring, double x0, d
   mkdir(TString::Format("./fig/%04d", run).Data(), 0777);
 
   //
-  ifstream fi_ring_cor(TString::Format("./par/x%d_x%d_rob%.2f/correction_ring_%04d.txt",(int)x0,(int)x1,rob,run).Data());
+  ifstream fi_ring_cor(TString::Format("./par/correction_ring_%04d.txt",run).Data());
   if(!fi_ring_cor){
     cout << "can not open ring correction file." << endl;
     return;
@@ -33,7 +33,7 @@ void correction_single(ofstream &fo, int run, int sector, int ring, double x0, d
   fi_ring_cor.close();
 
   //
-  TFile *fi = TFile::Open(TString::Format("../rootfile/si/data%04d_gr.root", run).Data());
+  TFile *fi = TFile::Open(TString::Format("../rootfile/si/data%04d_gr_fast.root", run).Data());
   if(fi->IsZombie()){
     cout << "can not open rootfile." << endl;
     return;
@@ -58,6 +58,9 @@ void correction_single(ofstream &fo, int run, int sector, int ring, double x0, d
   }
 
   c2->cd();
+  gr_new->SetTitle(Form("for_sector_sector%02d_ring%02d",sector,ring));
+  gr_new->GetXaxis()->SetTitle("ring energy [keV]");
+  gr_new->GetYaxis()->SetTitle("sector energy [keV]");
   gr_new->Draw("ap");
 
   gr_new->Fit("pol1", TString::Format("ROB=%lf",rob).Data(), "same", x0, x1);
@@ -76,6 +79,9 @@ void correction_single(ofstream &fo, int run, int sector, int ring, double x0, d
   }
 
   gr_residual->GetXaxis()->SetRangeUser(-5000, 5000);
+  gr_residual->SetTitle(Form("residual_between_sector%02d_ring%02d",sector,ring));
+  gr_residual->GetXaxis()->SetTitle("residual error [keV]");
+  gr_residual->GetYaxis()->SetTitle("sector energy [keV]");
   gr_residual->Draw("ap");
 
   c2->SaveAs(TString::Format("./fig/%04d/%s.png", run, c2->GetName()));
@@ -91,10 +97,8 @@ void correction_sector_new(int run, double x0, double x1, double rob)
 {
   gROOT->SetBatch(1);
 
-  mkdir(TString::Format("./par/x%d_x%d_rob%.2f", (int)x0, (int)x1, rob).Data(), 0777);
-
-  gSystem->Unlink(TString::Format("./par/x%d_x%d_rob%.2f/correction_sector_%04d.txt",(int)x0,(int)x1,rob,run).Data());
-  ofstream fo(TString::Format("./par/x%d_x%d_rob%.2f/correction_sector_%04d.txt",(int)x0,(int)x1,rob,run).Data(), std::ios::app);
+  gSystem->Unlink(TString::Format("./par/correction_sector_%04d.txt",run).Data());
+  ofstream fo(TString::Format("./par/correction_sector_%04d.txt",run).Data(), std::ios::app);
   fo << " sector  p0                p1" << endl;
 
   for(int i=1;i<=32;i++){

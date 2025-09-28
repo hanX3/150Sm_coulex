@@ -23,14 +23,6 @@ void fit_ring(int run_first, int run_last, int ring_id)
   cc->SetLogy();
   cc->cd();
 
-  int count_ref[24];
-  for(int i=0;i<24;i++){
-    if(i<6) count_ref[i] = 200;
-    else if(i<12) count_ref[i] = 500;
-    else if(i<18) count_ref[i] = 1000;
-    else count_ref[i] = 2000;
-  }
-
   TFile *fi_ref = TFile::Open(Form("../rootfile/si/data%04d_ring_hist_no_s3att_no_s3cor.root", v_run[0]));
   TH1D *h_ring_ref = (TH1D*)fi_ref->Get(Form("h_ring%02d", ring_id));
   TGraph *gr_ref = new TGraph(h_ring_ref->GetNbinsX());
@@ -41,16 +33,6 @@ void fit_ring(int run_first, int run_last, int ring_id)
   gr_ref->SetMarkerSize(0.4);
   gr_ref->SetMarkerColor(2);
 
-  double bin_ref;
-  for(int i=h_ring_ref->GetNbinsX();i>0;i--){
-    if(h_ring_ref->GetBinContent(i) < count_ref[ring_id-1]){
-      continue;
-    }else{
-      bin_ref = (double)i;
-      break;
-    }
-  }
-  cout << "bin_ref " << bin_ref << endl;
 
   //
   map<int, double> m_run_kx;
@@ -62,9 +44,19 @@ void fit_ring(int run_first, int run_last, int ring_id)
     TFile *fi = TFile::Open(Form("../rootfile/si/data%04d_ring_hist_no_s3att_no_s3cor.root", v_run[i]));
     TH1D *h_ring = (TH1D*)fi->Get(Form("h_ring%02d", ring_id));
 
+    double bin_ref;
+    for(int i=h_ring_ref->GetNbinsX();i>0;i--){
+      if(h_ring_ref->GetBinContent(i) < h_ring->GetEntries()/10000.){
+        continue;
+      }else{
+        bin_ref = (double)i;
+        break;
+      }
+    }
+
     double bin;
     for(int j=h_ring->GetNbinsX();j>0;j--){
-      if(h_ring->GetBinContent(j) < count_ref[ring_id-1]){
+      if(h_ring->GetBinContent(j) < h_ring->GetEntries()/10000.){
         continue;
       }else{
         bin = (double)j;
@@ -135,11 +127,6 @@ void fit_sector(int run_first, int run_last, int sector_id)
   cc->SetLogy();
   cc->cd();
 
-  int count_ref[32];
-  for(int i=0;i<32;i++){
-    count_ref[i] = 100;
-  }
-
   TFile *fi_ref = TFile::Open(Form("../rootfile/si/data%04d_sector_hist_no_s3att_no_s3cor.root", v_run[0]));
   TH1D *h_sector_ref = (TH1D*)fi_ref->Get(Form("h_sector%02d", sector_id));
   TGraph *gr_ref = new TGraph(h_sector_ref->GetNbinsX());
@@ -150,16 +137,6 @@ void fit_sector(int run_first, int run_last, int sector_id)
   gr_ref->SetMarkerSize(0.4);
   gr_ref->SetMarkerColor(2);
 
-  double bin_ref;
-  for(int i=h_sector_ref->GetNbinsX();i>0;i--){
-    if(h_sector_ref->GetBinContent(i) < count_ref[sector_id-1]){
-      continue;
-    }else{
-      bin_ref = (double)i;
-      break;
-    }
-  }
-  cout << "bin_ref " << bin_ref << endl;
 
   //
   map<int, double> m_run_kx;
@@ -171,9 +148,19 @@ void fit_sector(int run_first, int run_last, int sector_id)
     TFile *fi = TFile::Open(Form("../rootfile/si/data%04d_sector_hist_no_s3att_no_s3cor.root", v_run[i]));
     TH1D *h_sector = (TH1D*)fi->Get(Form("h_sector%02d", sector_id));
 
+    double bin_ref;
+    for(int j=50;j<h_sector_ref->GetNbinsX();j++){
+      if(h_sector_ref->GetBinContent(j) > h_sector->GetEntries()/20000.){
+        continue;
+      }else{
+        bin_ref = (double)j;
+        break;
+      }
+    }
+
     double bin;
-    for(int j=h_sector->GetNbinsX();j>0;j--){
-      if(h_sector->GetBinContent(j) < count_ref[sector_id-1]){
+    for(int j=50;j<h_sector->GetNbinsX();j++){
+      if(h_sector->GetBinContent(j) > h_sector->GetEntries()/20000.){
         continue;
       }else{
         bin = (double)j;

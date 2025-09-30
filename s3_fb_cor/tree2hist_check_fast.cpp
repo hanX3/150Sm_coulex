@@ -132,7 +132,7 @@ void tree2hist_check_fast(int run)
     //
     leg_ring[i] = new TLegend(0.7, 0.7, 0.9, 0.9);
     leg_ring[i]->AddEntry(h_ring[i], "ring", "l");
-    leg_ring[i]->AddEntry(h_ring2[i], "ring", "l");
+    leg_ring[i]->AddEntry(h_ring2[i], "sector", "l");
     leg_ring[i]->Draw("same");
 
     cc_ring[i]->SaveAs(Form("fig/%04d/%s.png", run, cc_ring[i]->GetName()));

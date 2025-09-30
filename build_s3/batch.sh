@@ -2,13 +2,13 @@
 
 max_jobs=120
 
-mkdir -p out
+mkdir -p terminal_cout
 
 while read run; do
-  ./build $run > out/$run.txt &
+  ./build $run > terminal_cout/$run.txt &
 
   while (( $(jobs -p | wc -l) >= $max_jobs )); do
     wait -n
   done
-done < "./run.txt"
+done < "../pars/run.txt"
 

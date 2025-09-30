@@ -23,7 +23,7 @@ int main(int argc, char const *argv[])
   std::cout << "analysis " << file_in << std::endl;
   
 #if defined(OPENS3COR) && defined(OPENS3ATT)
-    TString file_out = TString::Format("../rootfile/si/data%04d_build_s3_%dns.root", run, time_window);
+    TString file_out = TString::Format("../rootfile/si/data%04d_build_s3_%dns_new.root", run, time_window);
 #elif !defined(OPENS3COR) && defined(OPENS3ATT)
     TString file_out = TString::Format("../rootfile/si/data%04d_build_s3_%dns_no_s3cor.root", run, time_window);
 #elif !defined(OPENS3COR) && !defined(OPENS3ATT)

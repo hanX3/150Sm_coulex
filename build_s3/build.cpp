@@ -12,7 +12,6 @@ build::build(const std::string &filename_in, const std::string &filename_out, in
   benchmark = new TBenchmark;
 
   coin_width = TimeWindow;
-  jump_width = TimeJump;
 
   file_in = TFile::Open(filename_in.c_str());
   if(file_in->IsZombie()){
@@ -43,12 +42,12 @@ build::build(const std::string &filename_in, const std::string &filename_out, in
   if(!ReadTSOffsetData()){
     throw std::invalid_argument("can not read ts offset data.");
   }
-  PrintTSOffsetData();
+  // PrintTSOffsetData();
 
   if(!ReadCaliData()){
     throw std::invalid_argument("can not read cali data.");
   }
-  PrintCaliData();
+  // PrintCaliData();
 
 #ifdef OPENS3COR  
   if(!ReadS3CorData()){
@@ -62,7 +61,7 @@ build::build(const std::string &filename_in, const std::string &filename_out, in
     map_s3_ring_cor[i] = {0, 1};
   }
 #endif
-  PrintS3CorData();
+  // PrintS3CorData();
 
 #ifdef OPENS3ATT 
   if(!ReadS3AttData()){
@@ -76,12 +75,12 @@ build::build(const std::string &filename_in, const std::string &filename_out, in
     map_s3_ring_att[i] = 1.;
   }
 #endif
-  PrintS3AttData();
+  // PrintS3AttData();
 
   if(!InitMapSectorRingID()){
     throw std::invalid_argument("can not init map for sector and ring id");
   }
-  PrintMapSectorRingID();
+  // PrintMapSectorRingID();
 
   rndm = new TRandom3((Long64_t)time(0));
   file_out = TFile::Open(filename_out.c_str(), "recreate");
@@ -101,7 +100,6 @@ void build::Process()
 
   //
   GetS3FrontBackDataPrompt();
-  GetS3FrontBackDataRandom();
   
   benchmark->Show("build");
 }
@@ -117,6 +115,10 @@ void build::GetS3FrontBackDataPrompt()
   int n_max_s3_sector = nMaxS3Sector;
 
   double t_win = coin_width;
+
+  //
+  std::map<Double_t, std::tuple<Short_t, Short_t, Short_t, Long64_t>> m_sector_hit_info;
+  std::map<Double_t, std::tuple<Short_t, Short_t, Short_t, Long64_t>> m_ring_hit_info;
 
   Int_t n_s3_sector = 0;
   Short_t s3_sector_sid[n_max_s3_sector];
@@ -231,7 +233,7 @@ void build::GetS3FrontBackDataPrompt()
     }
 
     // std::cout << std::endl;
-    // std::cout << "info s3 " << cid1 << " " << sid1 << " " << ch1 << " " << evte1 << " " << ts1 << std::endl;
+    // std::cout << "info s3 " << sid1 << " " << ch1 << " " << evte1 << " " << ts1 << std::endl;
 
     while(true){//search backward
       if(i_current--==0) break;
@@ -310,306 +312,75 @@ void build::GetS3FrontBackDataPrompt()
       }else break;
     } // while search forward
 
-    // std::cout << "n_s3_ring " << n_s3_ring << " n_s3_sector " << n_s3_sector << std::endl;
-    if(n_s3_ring+n_s3_sector > 0){
-      n_evt++;
-
-      file_out->cd();
-      tr->Fill();
-
-      if(n_evt%1000==0){
-        std::cout << "\r" << n_evt << "  " << i << "/" << tr_in->GetEntries();
-        std::cout << std::flush;
+    // reject some events
+    // n_s3_ring==2 && n_s3_sector==1
+    if(n_s3_ring==2 && n_s3_sector==1){
+      if(std::abs(s3_ring_id[0]-s3_ring_id[1]) == 1){
+        n_s3_ring = 1;
+        if(s3_ring_energy[0]<s3_ring_energy[1]){
+          s3_ring_id[0] = s3_ring_id[1];
+          s3_ring_sid[0] = s3_ring_sid[1];
+          s3_ring_ch[0] = s3_ring_ch[1];
+        }
+ 
+        s3_ring_energy[0] += s3_ring_energy[1];
       }
     }
 
-    n_s3_sector = 0;
-    memset(s3_sector_id, 0, sizeof(s3_sector_id));
-    memset(s3_sector_sid, 0, sizeof(s3_sector_sid));
-    memset(s3_sector_ch, 0, sizeof(s3_sector_ch));
-    memset(s3_sector_energy, 0, sizeof(s3_sector_energy));
-    memset(s3_sector_ts, 0, sizeof(s3_sector_ts));
-
-    n_s3_ring = 0;
-    memset(s3_ring_id, 0, sizeof(s3_ring_id));
-    memset(s3_ring_sid, 0, sizeof(s3_ring_sid));
-    memset(s3_ring_ch, 0, sizeof(s3_ring_ch));
-    memset(s3_ring_energy, 0, sizeof(s3_ring_energy));
-    memset(s3_ring_ts, 0, sizeof(s3_ring_ts));
-
-    while(true){//get next s3 data
-      if(i>=tr_in->GetEntries()) break;
-      tr_in->GetEntry(i);
-      energy = GetEnergy();
-      ts_ns = GetTSns();
-      id = GetID();
-      i++;
-      if(cid==1 && (std::find(v_s3_sid.begin(), v_s3_sid.end(), sid)!=v_s3_sid.end()) && energy>cut_si_energy){
-        break;
+    // n_s3_ring==1 && n_s3_sector==2
+    if(n_s3_ring==1 && n_s3_sector==2){
+      if(std::abs(s3_sector_id[0]-s3_sector_id[1])==1 || std::abs(s3_sector_id[0]-s3_sector_id[1])==31){
+        n_s3_sector = 1;
+        if(s3_sector_energy[0]<s3_sector_energy[1]){
+          s3_sector_id[0] = s3_sector_id[1];
+          s3_sector_sid[0] = s3_sector_sid[1];
+          s3_sector_ch[0] = s3_sector_ch[1];
+        }
+ 
+        s3_sector_energy[0] += s3_sector_energy[1];
       }
     }
-    i_current = i-1;
-  }//while
-
-  std::cout << std::endl;
-
-  file_out->cd();
-  tr->Write();
-}
-
-//
-void build::GetS3FrontBackDataRandom()
-{
-  std::cout << "start get s3 front and back data random" << std::endl;
-
-  double cut_si_energy = CutSiEnergy;
-
-  int n_max_s3_ring = nMaxS3Ring;
-  int n_max_s3_sector = nMaxS3Sector;
-
-  double t_prompt = (coin_width>jump_width) ? jump_width : coin_width;
-  double t_min_rand = jump_width;
-  double t_max_rand = jump_width+coin_width;
-
-  Int_t n_s3_sector = 0;
-  Short_t s3_sector_sid[n_max_s3_sector];
-  Short_t s3_sector_ch[n_max_s3_sector];
-  Short_t s3_sector_id[n_max_s3_sector];
-  Double_t s3_sector_energy[n_max_s3_sector];
-  Long64_t s3_sector_ts[n_max_s3_sector];
-  Int_t n_s3_ring = 0;
-  Short_t s3_ring_sid[n_max_s3_ring];
-  Short_t s3_ring_ch[n_max_s3_ring];
-  Short_t s3_ring_id[n_max_s3_ring];
-  Double_t s3_ring_energy[n_max_s3_ring];
-  Long64_t s3_ring_ts[n_max_s3_ring];
-
-  std::stringstream ss;
-  ss.str("");
-  ss << "random coincidence window [" << t_min_rand << ", " << t_max_rand << "] ns";
-  TTree *tr = new TTree("tr_bg", ss.str().c_str());
-
-  memset(s3_sector_sid, 0, sizeof(s3_sector_sid));
-  memset(s3_sector_ch, 0, sizeof(s3_sector_ch));
-  memset(s3_sector_id, 0, sizeof(s3_sector_id));
-  memset(s3_sector_energy, 0, sizeof(s3_sector_energy));
-  memset(s3_sector_ts, 0, sizeof(s3_sector_ts));
-
-  memset(s3_ring_sid, 0, sizeof(s3_ring_sid));
-  memset(s3_ring_ch, 0, sizeof(s3_ring_ch));
-  memset(s3_ring_id, 0, sizeof(s3_ring_id));
-  memset(s3_ring_energy, 0, sizeof(s3_ring_energy));
-  memset(s3_ring_ts, 0, sizeof(s3_ring_ts));
-
-  tr->Branch("n_s3_sector", &n_s3_sector, "n_s3_sector/I");
-  tr->Branch("s3_sector_sid", s3_sector_sid, "s3_sector_sid[n_s3_sector]/S");
-  tr->Branch("s3_sector_ch", s3_sector_ch, "s3_sector_ch[n_s3_sector]/S");
-  tr->Branch("s3_sector_id", s3_sector_id, "s3_sector_id[n_s3_sector]/S");
-  tr->Branch("s3_sector_energy", s3_sector_energy, "s3_sector_energy[n_s3_sector]/D");
-  tr->Branch("s3_sector_ts", s3_sector_ts, "s3_sector_ts[n_s3_sector]/L");
-
-  tr->Branch("n_s3_ring", &n_s3_ring, "n_s3_ring/I");
-  tr->Branch("s3_ring_sid", s3_ring_sid, "s3_ring_sid[n_s3_ring]/S");
-  tr->Branch("s3_ring_ch", s3_ring_ch, "s3_ring_ch[n_s3_ring]/S");
-  tr->Branch("s3_ring_id", s3_ring_id, "s3_ring_id[n_s3_ring]/S");
-  tr->Branch("s3_ring_energy", s3_ring_energy, "s3_ring_energy[n_s3_ring]/D");
-  tr->Branch("s3_ring_ts", s3_ring_ts, "s3_ring_ts[n_s3_ring]/L");
-  
-  Long64_t i_start = 0;
-
-  Short_t sid1 = 0;
-  Short_t ch1 = 0;
-  Short_t id1 = 0;
-  Double_t evte1 = 0;
-  Long64_t ts1 = 0;
-  
-  Short_t sid2 = 0;
-  Short_t ch2 = 0;
-  Short_t id2 = 0;
-  Double_t evte2 = 0;
-  Long64_t ts2 = 0;
-
-  Short_t id;
-  Double_t energy;
-  Long64_t ts_ns;
-
-  while(true){//get first s3 data
-    tr_in->GetEntry(i_start);
-    energy = GetEnergy();
-    ts_ns = GetTSns();
-    id = GetID();
-    i_start++;
-    if(cid==1 && (std::find(v_s3_sid.begin(), v_s3_sid.end(), sid)!=v_s3_sid.end()) && energy>cut_si_energy){
-      break;
-    }
-  }
-
-  Long64_t n_evt = 0;
-  Long64_t i = i_start;
-  Long64_t i_current = i-1;
-  while(true){
-    if(i==tr_in->GetEntries()) break;
-
-    tr_in->GetEntry(i_current);
-    energy = GetEnergy();
-    ts_ns = GetTSns();
-    id = GetID();
-    if(cid==0 || (cid==1 && !(std::find(v_s3_sid.begin(), v_s3_sid.end(), sid)!=v_s3_sid.end())) || (cid==1 && (std::find(v_s3_sid.begin(), v_s3_sid.end(), sid)!=v_s3_sid.end()) && energy<=cut_si_energy)){
-      i++;
-      continue;
-    }
-
-    id1 = id;
-    sid1 = sid;
-    ch1 = ch;
-    evte1 = energy;
-    ts1 = ts_ns;
-
-    if(sid==v_s3_sid[0] || sid==v_s3_sid[1]){ // s3 sector
-      s3_sector_id[n_s3_sector] = id1; 
-      s3_sector_sid[n_s3_sector] = sid1; 
-      s3_sector_ch[n_s3_sector] = ch1; 
-      s3_sector_energy[n_s3_sector] = evte1; 
-      s3_sector_ts[n_s3_sector] = ts1; 
-      n_s3_sector++;
-    }
-
-    if(sid==v_s3_sid[2] || sid==v_s3_sid[3]){ // s3 ring
-      s3_ring_id[n_s3_ring] = id1; 
-      s3_ring_sid[n_s3_ring] = sid1; 
-      s3_ring_ch[n_s3_ring] = ch1; 
-      s3_ring_energy[n_s3_ring] = evte1; 
-      s3_ring_ts[n_s3_ring] = ts1; 
-      n_s3_ring++;
-    }
-
-    // std::cout << std::endl;
-    // std::cout << "info s3 " << cid1 << " " << sid1 << " " << ch1 << " " << evte1 << " " << ts1 << std::endl;
-
-    while(true){//search backward
-      if(i_current--==0) break;
-      tr_in->GetEntry(i_current);
-      energy = GetEnergy();
-      ts_ns = GetTSns();
-      id = GetID();
-      if(cid==0 || (cid==1 && !(std::find(v_s3_sid.begin(), v_s3_sid.end(), sid)!=v_s3_sid.end())) || (cid==1 && (std::find(v_s3_sid.begin(), v_s3_sid.end(), sid)!=v_s3_sid.end()) && energy<=cut_si_energy)){
-        continue;
-      }
-
-      id2 = id;
-      sid2 = sid;
-      ch2 = ch;
-      evte2 = energy;
-      ts2 = ts_ns;
     
-      if(abs(ts2-ts1)<=t_prompt){//this coincidence
-        if(sid==v_s3_sid[0] || sid==v_s3_sid[1]){ // s3 sector
-          s3_sector_id[n_s3_sector] = id2; 
-          s3_sector_sid[n_s3_sector] = sid2; 
-          s3_sector_ch[n_s3_sector] = ch2; 
-          s3_sector_energy[n_s3_sector] = evte2; 
-          s3_sector_ts[n_s3_sector] = ts2; 
-          n_s3_sector++;
-        }
-
-        if(sid==v_s3_sid[2] || sid==v_s3_sid[3]){ // s3 ring
-          s3_ring_id[n_s3_ring] = id2; 
-          s3_ring_sid[n_s3_ring] = sid2; 
-          s3_ring_ch[n_s3_ring] = ch2; 
-          s3_ring_energy[n_s3_ring] = evte2; 
-          s3_ring_ts[n_s3_ring] = ts2; 
-          n_s3_ring++;
-        }
+    // n_s3_ring==2 && n_s3_sector==2
+    if(n_s3_ring==2 && n_s3_sector==2){
+      for(int j=0;j<n_s3_sector;j++){
+        m_sector_hit_info[s3_sector_energy[j]] = std::make_tuple(s3_sector_id[j], s3_sector_sid[j], s3_sector_ch[j], s3_sector_ts[j]);
       }
-      else if(abs(ts2-ts1)>t_prompt && abs(ts2-ts1)<t_min_rand) continue;
-      else if((abs(ts2-ts1))>=t_min_rand && abs(ts2-ts1)<=t_max_rand){//this coincidence
-        if(sid==v_s3_sid[0] || sid==v_s3_sid[1]){ // s3 sector
-          s3_sector_id[n_s3_sector] = id2; 
-          s3_sector_sid[n_s3_sector] = sid2; 
-          s3_sector_ch[n_s3_sector] = ch2; 
-          s3_sector_energy[n_s3_sector] = evte2; 
-          s3_sector_ts[n_s3_sector] = ts2; 
-          n_s3_sector++;
-        }
-
-        if(sid==v_s3_sid[2] || sid==v_s3_sid[3]){ // s3 ring
-          s3_ring_id[n_s3_ring] = id2; 
-          s3_ring_sid[n_s3_ring] = sid2; 
-          s3_ring_ch[n_s3_ring] = ch2; 
-          s3_ring_energy[n_s3_ring] = evte2; 
-          s3_ring_ts[n_s3_ring] = ts2; 
-          n_s3_ring++;
-        }
+      for(int j=0;j<n_s3_ring;j++){
+        m_ring_hit_info[s3_ring_energy[j]] = std::make_tuple(s3_ring_id[j], s3_ring_sid[j], s3_ring_ch[j], s3_ring_ts[j]);
       }
-      else break;
-    } // while search backward
+      
+      auto it_sector = m_sector_hit_info.begin();
+      s3_sector_energy[0] = it_sector->first;
+      s3_sector_id[0] = std::get<0>(it_sector->second);
+      s3_sector_sid[0] = std::get<1>(it_sector->second);
+      s3_sector_ch[0] = std::get<2>(it_sector->second);
+      s3_sector_ts[0] = std::get<3>(it_sector->second);
+      it_sector++;
+      s3_sector_energy[1] = it_sector->first;
+      s3_sector_id[1] = std::get<0>(it_sector->second);
+      s3_sector_sid[1] = std::get<1>(it_sector->second);
+      s3_sector_ch[1] = std::get<2>(it_sector->second);
+      s3_sector_ts[1] = std::get<3>(it_sector->second);
+      
+      auto it_ring = m_ring_hit_info.begin();
+      s3_ring_energy[0] = it_ring->first;
+      s3_ring_id[0] = std::get<0>(it_ring->second);
+      s3_ring_sid[0] = std::get<1>(it_ring->second);
+      s3_ring_ch[0] = std::get<2>(it_ring->second);
+      s3_ring_ts[0] = std::get<3>(it_ring->second);
+      it_ring++;
+      s3_ring_energy[1] = it_ring->first;
+      s3_ring_id[1] = std::get<0>(it_ring->second);
+      s3_ring_sid[1] = std::get<1>(it_ring->second);
+      s3_ring_ch[1] = std::get<2>(it_ring->second);
+      s3_ring_ts[1] = std::get<3>(it_ring->second);
+      
+      m_sector_hit_info.clear();
+      m_ring_hit_info.clear();
+    }
 
-    while(true){//search forward
-      if(i>=tr_in->GetEntries()) break;
-      tr_in->GetEntry(i);
-      energy = GetEnergy();
-      ts_ns = GetTSns();
-      id = GetID();
-      if(cid==0 || (cid==1 && !(std::find(v_s3_sid.begin(), v_s3_sid.end(), sid)!=v_s3_sid.end())) || (cid==1 && (std::find(v_s3_sid.begin(), v_s3_sid.end(), sid)!=v_s3_sid.end()) && energy<=cut_si_energy)){
-        i++;
-        continue;
-      }
-
-      id2 = id;
-      sid2 = sid;
-      ch2 = ch;
-      evte2 = energy;
-      ts2 = ts_ns;
-
-      if(abs(ts2-ts1)<=t_prompt){//this coincidence
-        i++;
-        if(sid==v_s3_sid[0] || sid==v_s3_sid[1]){ // s3 sector
-          s3_sector_id[n_s3_sector] = id2; 
-          s3_sector_sid[n_s3_sector] = sid2; 
-          s3_sector_ch[n_s3_sector] = ch2; 
-          s3_sector_energy[n_s3_sector] = evte2; 
-          s3_sector_ts[n_s3_sector] = ts2; 
-          n_s3_sector++;
-        }
-
-        if(sid==v_s3_sid[2] || sid==v_s3_sid[3]){ // s3 ring
-          s3_ring_id[n_s3_ring] = id2; 
-          s3_ring_sid[n_s3_ring] = sid2; 
-          s3_ring_ch[n_s3_ring] = ch2; 
-          s3_ring_energy[n_s3_ring] = evte2; 
-          s3_ring_ts[n_s3_ring] = ts2; 
-          n_s3_ring++;
-        }
-      }
-      else if(abs(ts2-ts1)>t_prompt && abs(ts2-ts1)<t_min_rand){
-        i++;
-        continue;
-      }
-      else if((abs(ts2-ts1))>=t_min_rand && abs(ts2-ts1)<=t_max_rand){//this coincidence
-        i++;
-        if(sid==v_s3_sid[0] || sid==v_s3_sid[1]){ // s3 sector
-          s3_sector_id[n_s3_sector] = id2; 
-          s3_sector_sid[n_s3_sector] = sid2; 
-          s3_sector_ch[n_s3_sector] = ch2; 
-          s3_sector_energy[n_s3_sector] = evte2; 
-          s3_sector_ts[n_s3_sector] = ts2; 
-          n_s3_sector++;
-        }
-
-        if(sid==v_s3_sid[2] || sid==v_s3_sid[3]){ // s3 ring
-          s3_ring_id[n_s3_ring] = id2; 
-          s3_ring_sid[n_s3_ring] = sid2; 
-          s3_ring_ch[n_s3_ring] = ch2; 
-          s3_ring_energy[n_s3_ring] = evte2; 
-          s3_ring_ts[n_s3_ring] = ts2; 
-          n_s3_ring++;
-        }
-      }
-      else break;
-    } // while search forward
-
-    // std::cout << "n_s3_ring " << n_s3_ring << " n_s3_sector " << n_s3_sector << std::endl;
-    if(n_s3_ring+n_s3_sector > 0){
+    if((n_s3_ring==1 && n_s3_sector==1 && std::abs(s3_ring_energy[0]-s3_sector_energy[0])<CutS3EnergyDiff) || (n_s3_ring==2 && n_s3_sector==2 && std::abs(s3_ring_energy[0]-s3_sector_energy[0])<CutS3EnergyDiff && std::abs(s3_ring_energy[1]-s3_sector_energy[1])<CutS3EnergyDiff)){
       n_evt++;
 
       file_out->cd();
@@ -634,6 +405,7 @@ void build::GetS3FrontBackDataRandom()
     memset(s3_ring_ch, 0, sizeof(s3_ring_ch));
     memset(s3_ring_energy, 0, sizeof(s3_ring_energy));
     memset(s3_ring_ts, 0, sizeof(s3_ring_ts));
+
 
     while(true){//get next s3 data
       if(i>=tr_in->GetEntries()) break;
@@ -1069,30 +841,30 @@ bool build::InitMapSectorRingID()
   }
  
   map_s3_ring_id = {
-    {11102, 2},
-    {11103, 4},
-    {11104, 6},
-    {11105, 8},
-    {11106, 10},
-    {11107, 12},
-    {11108, 14},
-    {11109, 16},
-    {11110, 18},
-    {11111, 20},
-    {11112, 22},
-    {11113, 24},
-    {11200, 1},
-    {11201, 3},
-    {11202, 5},
-    {11203, 7},
-    {11204, 9},
-    {11205, 11},
-    {11206, 13},
-    {11207, 15},
-    {11208, 17},
-    {11209, 19},
-    {11210, 21},
-    {11211, 23}
+    {11102, 1},
+    {11103, 3},
+    {11104, 5},
+    {11105, 7},
+    {11106, 9},
+    {11107, 11},
+    {11108, 13},
+    {11109, 15},
+    {11110, 17},
+    {11111, 19},
+    {11112, 21},
+    {11113, 23},
+    {11200, 2},
+    {11201, 4},
+    {11202, 6},
+    {11203, 8},
+    {11204, 10},
+    {11205, 12},
+    {11206, 14},
+    {11207, 16},
+    {11208, 18},
+    {11209, 20},
+    {11210, 22},
+    {11211, 24}
   };
 
   return 1;

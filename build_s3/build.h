@@ -24,8 +24,11 @@ public:
   void Process();
 
   void GetS3FrontBackDataPrompt();
-  void GetS3FrontBackDataRandom();
   void SaveFile();
+
+public:
+  void AnaRing2Sector1();
+  void AnaRing1Sector2();
 
 private:
   std::map<int, std::vector<double>> map_cali;

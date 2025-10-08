@@ -50,8 +50,11 @@ public:
   bool ReadCaliData();
   void PrintCaliData();
 
-  void ReadS3CorData();
+  bool ReadS3CorData();
   void PrintS3CorData();
+
+  bool ReadS3AttData();
+  void PrintS3AttData();
 
   bool ReadTSOffset();
   void PrintTSOffset();
@@ -70,13 +73,14 @@ private:
   void GetTsns();
 
 private:
-  std::map<int, std::vector<double>> map_cali_data;
-  std::map<int, double> map_k_data;
+  std::map<int, std::vector<double>> map_cali;
+  std::map<int, double> map_k;
+  std::map<int, std::vector<double>> map_s3_sector_cor, map_s3_ring_cor; // key is id
+  std::map<int, double> map_s3_sector_att, map_s3_ring_att; // key is id
   std::map<int, double> map_ts_offset;
-  std::map<int, std::vector<double>> map_ge_tw_data;
+  std::map<int, std::vector<double>> map_ge_tw;
 
   std::map<int, int> map_s3_sector_id, map_s3_ring_id;
-  std::map<int, std::vector<double>> map_s3_sector_cor_data, map_s3_ring_cor_data;
 
   std::map<Long64_t, sort_data> map_sort_data;
   std::map<Long64_t, sort_data>::iterator it_sd;

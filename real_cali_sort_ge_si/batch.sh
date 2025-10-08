@@ -1,14 +1,14 @@
 #!/usr/bin/bash
 
-max_jobs=90
+max_jobs=120
 
-mkdir -p out
+mkdir -p terminal_out
 
 while read run; do
-  ./sort $run > out/$run &
+  ./sort $run > terminal_out/$run &
 
   while (( $(jobs -p | wc -l) >= $max_jobs )); do
     wait -n
   done
-done < "./run.txt"
+done < "../pars/run.txt"
 

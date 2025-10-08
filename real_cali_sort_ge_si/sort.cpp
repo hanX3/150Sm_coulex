@@ -10,11 +10,6 @@ sort::sort(const std::string &filename_in, const std::string &filename_out, cons
 
   run = r;
 
-  if(!InitMapSectorRingID()){
-    throw std::invalid_argument("can not init ring and sector id data.");
-  }
-  PrintMapSectorRingID();
-
   file_in = TFile::Open(filename_in.c_str());
   if(file_in->IsZombie()){
     std::cout << "open file " << filename_in.c_str() << " error!" << std::endl;
@@ -33,24 +28,38 @@ sort::sort(const std::string &filename_in, const std::string &filename_out, cons
   }
 
   //
+  if(!InitMapSectorRingID()){
+    throw std::invalid_argument("can not init ring and sector id data.");
+  }
+  PrintMapSectorRingID();
+
+  // 
   if(!ReadCaliData()){
     throw std::invalid_argument("can not read cali data.");
   }
-  PrintCaliData();
-  ReadS3CorData();
+  //PrintCaliData();
+  
+  if(!ReadS3AttData()){
+    throw std::invalid_argument("can not read ts s3 att data.");
+  }
+  //PrintS3AttData();
+
+  if(!ReadS3CorData()){
+    throw std::invalid_argument("can not read ts s3 cor data.");
+  }
   PrintS3CorData();
 
   // read ts offset
   if(!ReadTSOffset()){
     throw std::invalid_argument("can not read ts offset data.");
   }
-  PrintTSOffset();
+  //PrintTSOffset();
 
   // read ge time walk
   if(!ReadGeTwData()){
     throw std::invalid_argument("can not read ge time walk data.");
   }
-  PrintGeTwData();
+  //PrintGeTwData();
 
   rndm = new TRandom3((Long64_t)time(0));
   
@@ -82,7 +91,7 @@ void sort::Process()
   rd->GetEntry(rd->GetEntries()-1);
   sd(rd->cid, rd->sid, rd->ch, 0., 0);
   GetEnergy();
-  if(map_cali_data.find(10000*rd->cid+100*rd->sid+rd->ch) == map_cali_data.end()){
+  if(map_cali.find(10000*rd->cid+100*rd->sid+rd->ch) == map_cali.end()){
     std::cout << "can not find cali data for this channel." << std::endl;
     std::cout << "cid " << rd->cid << " sid " << rd->sid << " ch " << rd->ch << std::endl;
     return;
@@ -97,7 +106,7 @@ void sort::Process()
     rd->GetEntry(i);
     sd(rd->cid, rd->sid, rd->ch, 0., 0);
 
-    if(map_cali_data.find(10000*rd->cid+100*rd->sid+rd->ch) == map_cali_data.end()){
+    if(map_cali.find(10000*rd->cid+100*rd->sid+rd->ch) == map_cali.end()){
       std::cout << "can not find cali data for this channel." << std::endl;
       std::cout << "cid " << rd->cid << " sid " << rd->sid << " ch " << rd->ch << std::endl;
       return;
@@ -162,7 +171,7 @@ void sort::GetTsns()
     sd.ts += map_ts_offset[key];
 
 #ifdef TW
-    for(int i=0;i<tf->GetNpar();++i) tf->SetParameter(i, map_ge_tw_data[key][i]);
+    for(int i=0;i<tf->GetNpar();++i) tf->SetParameter(i, map_ge_tw[key][i]);
     sd.ts += tf->Eval(sd.evte);
 #endif
   }
@@ -182,20 +191,15 @@ void sort::GetEnergy()
   int key = 10000*rd->cid+100*rd->sid+rd->ch;
 
   if(rd->cid==0){
-    sd.evte = map_cali_data[key][0]+rd->evte*map_cali_data[key][1]+rd->evte*rd->evte*map_cali_data[key][2]+rndm->Uniform(-0.5,0.5);
-    sd.evte *= map_k_data[key];
+    sd.evte = map_cali[key][0]+rd->evte*map_cali[key][1]+rd->evte*rd->evte*map_cali[key][2]+rndm->Uniform(-0.5,0.5);
+    sd.evte *= map_k[key];
   }
 
   if(rd->cid==1){
-    sd.evte = map_cali_data[key][0]+rd->evte*map_cali_data[key][1]+rd->evte*rd->evte*map_cali_data[key][2]+rndm->Uniform(-5.,5.);
+    sd.evte = map_cali[key][0]+rd->evte*map_cali[key][1]+rd->evte*rd->evte*map_cali[key][2]+rndm->Uniform(-5.,5.);
 
-    if(map_s3_sector_id.find(key)!=map_s3_sector_id.end()){
-      sd.evte = map_s3_sector_cor_data[map_s3_sector_id[key]][0]+sd.evte*map_s3_sector_cor_data[map_s3_sector_id[key]][1];
-    }
-    if(map_s3_ring_id.find(key)!=map_s3_ring_id.end()){
-      sd.evte = map_s3_ring_cor_data[map_s3_ring_id[key]][0]+sd.evte*map_s3_ring_cor_data[map_s3_ring_id[key]][1];
-    }
-
+    // modified
+    if(rd->sid==11) sd.evte *= 10.;
     if((run>475&&run<616) || (run>=680&&run<=718)){
       if(rd->sid==2){
         sd.evte *= 4.;
@@ -205,6 +209,22 @@ void sort::GetEnergy()
       if(rd->sid==9){
         sd.evte *= 4.;
       } 
+    }
+
+    // s3att
+    if(map_s3_sector_id.find(key)!=map_s3_sector_id.end()){
+      sd.evte *= map_s3_sector_att[map_s3_sector_id[key]];
+    }
+    if(map_s3_ring_id.find(key)!=map_s3_ring_id.end()){
+      sd.evte *= map_s3_ring_att[map_s3_ring_id[key]];
+    }
+ 
+    // s3cor
+    if(map_s3_sector_id.find(key)!=map_s3_sector_id.end()){
+      sd.evte = map_s3_sector_cor[map_s3_sector_id[key]][0]+sd.evte*map_s3_sector_cor[map_s3_sector_id[key]][1];
+    }
+    if(map_s3_ring_id.find(key)!=map_s3_ring_id.end()){
+      sd.evte = map_s3_ring_cor[map_s3_ring_id[key]][0]+sd.evte*map_s3_ring_cor[map_s3_ring_id[key]][1];
     }
   }
 }
@@ -241,7 +261,7 @@ bool sort::ReadCaliData()
     value.push_back(par2);
     value.push_back(chi2);
 
-    map_cali_data.insert(std::pair<int, std::vector<double>>(key, value));
+    map_cali.insert(std::pair<int, std::vector<double>>(key, value));
   }
 
   fi_cali_ge.close();
@@ -253,7 +273,7 @@ bool sort::ReadCaliData()
     std::cout << "can not open k data" << std::endl;
     for(int i=2;i<=5;i++){
       for(int j=0;j<16;j++){
-        map_k_data.insert(std::pair<int, double>(100*i+j, 1.));
+        map_k.insert(std::pair<int, double>(100*i+j, 1.));
       }
     }
   }else{
@@ -268,7 +288,7 @@ bool sort::ReadCaliData()
 
       key = 10000*cid+100*sid+ch; // ch from 0 to 15
 
-      map_k_data.insert(std::pair<int, double>(key, k));
+      map_k.insert(std::pair<int, double>(key, k));
     }
 
     fi_k.close();
@@ -305,7 +325,7 @@ bool sort::ReadCaliData()
     value.push_back(par2);
     value.push_back(chi2);
 
-    map_cali_data.insert(std::pair<int, std::vector<double>>(key, value));
+    map_cali.insert(std::pair<int, std::vector<double>>(key, value));
   }
 
   fi_cali_si.close();
@@ -318,19 +338,19 @@ void sort::PrintCaliData()
 {
   std::cout << "start print cali data" << std::endl;
 
-  std::map<int, std::vector<double>>::iterator it_cali = map_cali_data.begin();
-  for(;it_cali!=map_cali_data.end();it_cali++){
+  std::map<int, std::vector<double>>::iterator it_cali = map_cali.begin();
+  for(;it_cali!=map_cali.end();it_cali++){
     std::cout << it_cali->first << " => " << it_cali->second[0] << " " << it_cali->second[1] << " " << it_cali->second[2] << '\n';
   }
 
-  std::map<int, double>::iterator it_k = map_k_data.begin();
-  for(;it_k!=map_k_data.end();it_k++){
+  std::map<int, double>::iterator it_k = map_k.begin();
+  for(;it_k!=map_k.end();it_k++){
     std::cout << it_k->first << " => " << it_k->second<< '\n';
   }
 }
 
 //
-void sort::ReadS3CorData() 
+bool sort::ReadS3CorData() 
 {
   int id;
   double par0, par1;
@@ -340,9 +360,7 @@ void sort::ReadS3CorData()
   std::ifstream fi_fb_cor_sector(TString::Format("../pars/run_fb_cor/correction_sector_%04d.txt",run).Data());
   if(!fi_fb_cor_sector){
     std::cout << "can not open sector correction file." << std::endl;
-    for(int i=1;i<=32;i++){
-      map_s3_sector_cor_data[i] = {0, 1};
-    }
+    return 0;
   }else{
     std::getline(fi_fb_cor_sector, line);
     
@@ -350,7 +368,7 @@ void sort::ReadS3CorData()
       fi_fb_cor_sector >> id >> par0 >> par1;
       if(!fi_fb_cor_sector.good()) break;
 
-      map_s3_sector_cor_data[id] = {par0, par1};
+      map_s3_sector_cor[id] = {par0, par1};
     }
     fi_fb_cor_sector.close();
   }
@@ -358,9 +376,7 @@ void sort::ReadS3CorData()
   std::ifstream fi_fb_cor_ring(TString::Format("../pars/run_fb_cor/correction_ring_%04d.txt",run).Data());
   if(!fi_fb_cor_ring){
     std::cout << "can not open ring correction file." << std::endl;
-    for(int i=1;i<=24;i++){
-      map_s3_ring_cor_data[i] = {0, 1};
-    }
+    return 0;
   }else{
     std::getline(fi_fb_cor_ring, line);
     
@@ -368,10 +384,12 @@ void sort::ReadS3CorData()
       fi_fb_cor_ring >> id >> par0 >> par1;
       if(!fi_fb_cor_ring.good()) break;
 
-      map_s3_ring_cor_data[id] = {par0, par1};
+      map_s3_ring_cor[id] = {par0, par1};
     }
     fi_fb_cor_ring.close();
   }
+
+  return 1;
 }
 
 //
@@ -380,15 +398,90 @@ void sort::PrintS3CorData()
   std::cout << "\nstart print s3 cor data" << std::endl;
 
   std::cout << "\nfor sector ..." << std::endl;
-  std::map<int, std::vector<double>>::iterator it_sector = map_s3_sector_cor_data.begin();
-  for(;it_sector!=map_s3_sector_cor_data.end();it_sector++){
+  std::map<int, std::vector<double>>::iterator it_sector = map_s3_sector_cor.begin();
+  for(;it_sector!=map_s3_sector_cor.end();it_sector++){
     std::cout << it_sector->first << " => " << it_sector->second[0] << " " << it_sector->second[1] << '\n';
   }
 
   std::cout << "\nfor ring ..." << std::endl;
-  std::map<int, std::vector<double>>::iterator it_ring = map_s3_ring_cor_data.begin();
-  for(;it_ring!=map_s3_ring_cor_data.end();it_ring++){
+  std::map<int, std::vector<double>>::iterator it_ring = map_s3_ring_cor.begin();
+  for(;it_ring!=map_s3_ring_cor.end();it_ring++){
     std::cout << it_ring->first << " => " << it_ring->second[0] << " " << it_ring->second[1] << '\n';
+  }
+}
+
+//
+bool sort::ReadS3AttData()
+{
+  int r;
+  double par;
+
+  bool flag = 0;
+
+  std::ifstream fi_sector;
+  for(int i=0;i<32;i++){
+    flag = 0;
+    fi_sector.open(Form("../pars/run_s3_att/sector%02d.txt",i+1));
+    if(!fi_sector){
+      std::cout << "can not open sector att file." << std::endl;
+      return 0;
+    }else{
+      while(fi_sector >> r >> par){
+        if(r==run){
+          map_s3_sector_att[i+1] = par;
+          flag = 1;
+          break;
+        }else continue;
+      }
+      fi_sector.close();
+    }
+  }
+  if(!flag){
+    std::cout << "can not find run " << run << " s3 att data." << std::endl;
+    return 0;
+  }
+
+  std::ifstream fi_ring;
+  for(int i=0;i<24;i++){
+    flag = 0;
+    fi_ring.open(Form("../pars/run_s3_att/ring%02d.txt",i+1));
+    if(!fi_ring){
+      std::cout << "can not open ring att file." << std::endl;
+      return 0;
+    }else{
+      while(fi_ring >> r >> par){
+        if(r==run){
+          map_s3_ring_att[i+1] = par;
+          flag = 1;
+          break;
+        }else continue;
+      }
+      fi_ring.close();
+    }
+  }
+  if(!flag){
+    std::cout << "can not find run " << run << " s3 att data." << std::endl;
+    return 0;
+  }
+
+  return 1;
+}
+
+//
+void sort::PrintS3AttData()
+{
+  std::cout << "\nstart print s3 att data" << std::endl;
+
+  std::cout << "\n run number " << run << " for sector ..." << std::endl;
+  std::map<int, double>::iterator it_sector = map_s3_sector_att.begin();
+  for(;it_sector!=map_s3_sector_att.end();it_sector++){
+    std::cout << it_sector->first << " => " << it_sector->second << '\n';
+  }
+
+  std::cout << "\n run number " << run << " for ring ..." << std::endl;
+  std::map<int, double>::iterator it_ring = map_s3_ring_att.begin();
+  for(;it_ring!=map_s3_ring_att.end();it_ring++){
+    std::cout << it_ring->first << " => " << it_ring->second << '\n';
   }
 }
 
@@ -478,7 +571,7 @@ bool sort::ReadGeTwData()
     std::vector<double> value;
     for(int i=0;i<n_par;++i) value.push_back(par[i]);
 
-    map_ge_tw_data.insert(std::pair<int, std::vector<double>>(key, value));
+    map_ge_tw.insert(std::pair<int, std::vector<double>>(key, value));
   }
 
   fi.close();
@@ -491,21 +584,20 @@ void sort::PrintGeTwData()
 {
   std::cout << "start print ge ts time walk data" << std::endl;
 
-  std::map<int, std::vector<double>>::iterator it_ge_tw = map_ge_tw_data.begin();
-  for(;it_ge_tw!=map_ge_tw_data.end();it_ge_tw++){
+  std::map<int, std::vector<double>>::iterator it_ge_tw = map_ge_tw.begin();
+  for(;it_ge_tw!=map_ge_tw.end();it_ge_tw++){
     std::cout << it_ge_tw->first << " => ";
     for(auto i=0u;i<it_ge_tw->second.size();++i) std::cout << it_ge_tw->second[i] << " ";
     std::cout << '\n';
   }
 }
 
-
 //
 bool sort::InitMapSectorRingID()
 {
   std::cout << "start init ring and sector id." << std::endl;
 
-  if(run==377 || (run>=457 && run<=462) || (run>=472 && run<=605) || (run>=680 && run<=718)){
+  if((run>=457 && run<=462) || (run>=472 && run<=605) || (run>=680 && run<=718)){
     map_s3_sector_id = {
       {10900, 10},
       {10901, 12},
@@ -581,30 +673,30 @@ bool sort::InitMapSectorRingID()
   }
 
   map_s3_ring_id = {
-    {11102, 2},
-    {11103, 4},
-    {11104, 6},
-    {11105, 8},
-    {11106, 10},
-    {11107, 12},
-    {11108, 14},
-    {11109, 16},
-    {11110, 18},
-    {11111, 20},
-    {11112, 22},
-    {11113, 24},
-    {11200, 1},
-    {11201, 3},
-    {11202, 5},
-    {11203, 7},
-    {11204, 9},
-    {11205, 11},
-    {11206, 13},
-    {11207, 15},
-    {11208, 17},
-    {11209, 19},
-    {11210, 21},
-    {11211, 23}
+    {11102, 1},
+    {11103, 3},
+    {11104, 5},
+    {11105, 7},
+    {11106, 9},
+    {11107, 11},
+    {11108, 13},
+    {11109, 15},
+    {11110, 17},
+    {11111, 19},
+    {11112, 21},
+    {11113, 23},
+    {11200, 2},
+    {11201, 4},
+    {11202, 6},
+    {11203, 8},
+    {11204, 10},
+    {11205, 12},
+    {11206, 14},
+    {11207, 16},
+    {11208, 18},
+    {11209, 20},
+    {11210, 22},
+    {11211, 24}
   };
 
   return 1;

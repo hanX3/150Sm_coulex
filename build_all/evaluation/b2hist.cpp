@@ -85,6 +85,10 @@ void b2hist(int run, int win, int jump, TString str)
     v_si_ts.clear();
 
     //
+    for(int j=0;j<rd->n_ge;j++){
+      v_ge_ts.push_back(rd->ge_ts[j]);
+    }
+
     for(int j=0;j<rd->n_spider;j++){
       if(rd->spider_energy[j]<cut_spider) continue;
       v_spider_ts.push_back(rd->spider_ts[j]);
@@ -205,13 +209,13 @@ void b2hist(int run, int win, int jump, TString str)
   TH2D* hh_spider_energy;
   TH1D *h_spider_sector_energy_single[12], *h_spider_ring_energy_single[8];
 
-  h_n_spider = new TH1D("h_n_spider", "", 96, 0, 96);
-  h_spider_sector_id = new TH1D("h_spider_sector_id", "", 20, 0, 20);
-  h_spider_ring_id = new TH1D("h_spider_ring_id", "", 10, 0, 10);
+  h_n_spider = new TH1D("h_n_spider", "", 10, 1, 11);
+  h_spider_sector_id = new TH1D("h_spider_sector_id", "", 12, 1, 13);
+  h_spider_ring_id = new TH1D("h_spider_ring_id", "", 8, 1, 9);
   h_spider_energy = new TH1D("h_spider_energy", "", 1000, 0, 100000);
-  hh_spider_sector_energy = new TH2D("hh_spider_sector_energy", "", 12, 0, 12, 1000, 0, 100000);
-  hh_spider_ring_energy = new TH2D("hh_spider_ring_energy", "", 8, 0, 8, 1000, 0, 100000);
-  hh_spider_energy = new TH2D("hh_spider_energy", "", 96, 0, 96, 1000, 0, 100000);
+  hh_spider_sector_energy = new TH2D("hh_spider_sector_energy", "", 12, 1, 13, 1000, 0, 100000);
+  hh_spider_ring_energy = new TH2D("hh_spider_ring_energy", "", 8, 1, 9, 1000, 0, 100000);
+  hh_spider_energy = new TH2D("hh_spider_energy", "", 96, 1, 97, 1000, 0, 100000);
   for(int i=0;i<12;i++){
     h_spider_sector_energy_single[i] = new TH1D(TString::Format("h_spider_sector%02d_energy",i+1).Data(), "", 1000, 0, 100000);
     tr->Draw(TString::Format("spider_energy>>%s",h_spider_sector_energy_single[i]->GetName()).Data(), TString::Format("spider_sector_id==%d",i+1).Data(), "goff");
@@ -239,14 +243,14 @@ void b2hist(int run, int win, int jump, TString str)
   TH2D *hh_s3_sector_energy, *hh_s3_ring_energy;
   TH1D *h_s3_sector_energy_single[32], *h_s3_ring_energy_single[24];
 
-  h_n_s3_sector = new TH1D("h_n_s3_sector", "", 32, 0, 32);
-  h_n_s3_ring = new TH1D("h_n_s3_ring", "", 24, 0, 24);
-  h_s3_sector_id = new TH1D("h_s3_sector_id", "", 40, 0, 40);
-  h_s3_ring_id = new TH1D("h_s3_ring_id", "", 30, 0, 30);
+  h_n_s3_sector = new TH1D("h_n_s3_sector", "", 4, 0, 4);
+  h_n_s3_ring = new TH1D("h_n_s3_ring", "", 4, 0, 4);
+  h_s3_sector_id = new TH1D("h_s3_sector_id", "", 32, 1, 33);
+  h_s3_ring_id = new TH1D("h_s3_ring_id", "", 24, 1, 25);
   h_s3_sector_energy = new TH1D("h_s3_sector_energy", "", 1000, 0, 100000);
   h_s3_ring_energy = new TH1D("h_s3_ring_energy", "", 1000, 0, 100000);
-  hh_s3_sector_energy = new TH2D("hh_s3_sector_energy", "", 40,0,40, 1000,0,100000);
-  hh_s3_ring_energy = new TH2D("hh_s3_ring_energy", "", 30,0,30, 1000,0,100000);
+  hh_s3_sector_energy = new TH2D("hh_s3_sector_energy", "", 32,1,32, 1000,0,100000);
+  hh_s3_ring_energy = new TH2D("hh_s3_ring_energy", "", 24,1,25, 1000,0,100000);
   for(int i=0;i<32;i++){
     h_s3_sector_energy_single[i] = new TH1D(TString::Format("h_s3_sector%02d_energy",i+1).Data(), "", 1000, 0, 100000);
     tr->Draw(TString::Format("s3_sector_energy>>%s",h_s3_sector_energy_single[i]->GetName()).Data(), TString::Format("s3_sector_id==%d",i+1).Data(), "goff");

@@ -12,7 +12,7 @@ build::build(const std::string &filename_in, const std::string &filename_out, in
   benchmark = new TBenchmark;
 
   run = r;
-  if((run>=457 && run<=462) || (run>=472 && run<=605) || (run>=680 && run<=718)){
+  if((run>=472 && run<=605) || (run>=680 && run<=718)){
     v_s3_sid = {9, 10, 11, 12};
   }else if((run>=616 && run<=674) || (run>=721 && run<=723)){
     v_s3_sid = {2, 3, 11, 12};
@@ -95,15 +95,21 @@ void build::GetGeSpiderS3EventPrompt()
 {
   std::cout << "start get ge si prompt events" << std::endl;
 
-  int n_max_ge = GENUM;
-  int n_max_spider = SPIDERNUM;
-  int n_max_s3_sector = S3SECTORNUM;
-  int n_max_s3_ring = S3RINGNUM;
+  int n_max_ge = GeNum;
+  int n_max_spider = SpiderNum;
+  int n_max_s3_sector = S3SectorNum;
+  int n_max_s3_ring = S3RingNum;
 
-  double cut_ge = CUTGE; 
-  double cut_si = CUTSI;
+  double cut_ge = CutGeEnergy; 
+  double cut_spider = CutSpiderEnergy;
+  double cut_s3 = CutS3Energy;
+  double cut_s3_fb_diff = CutS3FBDiff; 
 
   double t_win = coin_width;
+
+  //
+  std::map<Double_t, std::tuple<Short_t, Short_t, Short_t, Long64_t>> m_sector_hit_info;
+  std::map<Double_t, std::tuple<Short_t, Short_t, Short_t, Long64_t>> m_ring_hit_info;
 
   //
   Int_t n_ge = 0;
@@ -249,7 +255,13 @@ void build::GetGeSpiderS3EventPrompt()
       if(cid==0 && evte<=cut_ge){//if Ge data and small energy
         continue;
       }
-      if(cid==1 && evte<=cut_si){//if Si/S3 data and small energy
+
+      // cut spider small energy
+      if(cid==1 && !(std::find(v_s3_sid.begin(),v_s3_sid.end(),sid)!=v_s3_sid.end()) && evte<=cut_spider){ 
+        continue;
+      }
+      // cut s3 small energy
+      if(cid==1 && (std::find(v_s3_sid.begin(),v_s3_sid.end(),sid)!=v_s3_sid.end()) && evte<=cut_s3){ 
         continue;
       }
 
@@ -308,7 +320,13 @@ void build::GetGeSpiderS3EventPrompt()
         i++;
         continue;
       }
-      if(cid==1 && evte<=cut_si){//if si data and small energy
+      // cut spider small energy
+      if(cid==1 && !(std::find(v_s3_sid.begin(),v_s3_sid.end(),sid)!=v_s3_sid.end()) && evte<=cut_spider){ 
+        i++;
+        continue;
+      }
+      // cut s3 small energy
+      if(cid==1 && (std::find(v_s3_sid.begin(),v_s3_sid.end(),sid)!=v_s3_sid.end()) && evte<=cut_s3){ 
         i++;
         continue;
       }
@@ -364,7 +382,83 @@ void build::GetGeSpiderS3EventPrompt()
     // std::cout << " n_s3_sector " << n_s3_sector << " n_s3_ring " << n_s3_ring << std::endl;
     
     CloverAddback(ge_sid, ge_ch, ge_ring_id, ge_sector_id, ge_energy, ge_ts, n_ge);
-    if(n_ge*(n_spider+n_s3_sector+n_s3_ring) > 0){
+
+    // analysis s3 events
+    // n_s3_ring==2 && n_s3_sector==1
+    if(n_s3_ring==2 && n_s3_sector==1){
+      if(std::abs(s3_ring_id[0]-s3_ring_id[1]) == 1){
+        n_s3_ring = 1;
+        if(s3_ring_energy[0]<s3_ring_energy[1]){
+          s3_ring_id[0] = s3_ring_id[1];
+          s3_ring_sid[0] = s3_ring_sid[1];
+          s3_ring_ch[0] = s3_ring_ch[1];
+        }
+
+        s3_ring_energy[0] += s3_ring_energy[1];
+      }
+    }
+    
+    // n_s3_ring==1 && n_s3_sector==2
+    if(n_s3_ring==1 && n_s3_sector==2){
+      if(std::abs(s3_sector_id[0]-s3_sector_id[1])==1 || std::abs(s3_sector_id[0]-s3_sector_id[1])==31){
+        n_s3_sector = 1;
+        if(s3_sector_energy[0]<s3_sector_energy[1]){
+          s3_sector_id[0] = s3_sector_id[1];
+          s3_sector_sid[0] = s3_sector_sid[1];
+          s3_sector_ch[0] = s3_sector_ch[1];
+        }
+
+        s3_sector_energy[0] += s3_sector_energy[1];
+      }
+    }
+
+    // n_s3_ring==2 && n_s3_sector==2
+    if(n_s3_ring==2 && n_s3_sector==2){
+      for(int j=0;j<n_s3_sector;j++){
+        m_sector_hit_info[s3_sector_energy[j]] = std::make_tuple(s3_sector_id[j], s3_sector_sid[j], s3_sector_ch[j], s3_sector_ts[j]);
+      }
+      for(int j=0;j<n_s3_ring;j++){
+        m_ring_hit_info[s3_ring_energy[j]] = std::make_tuple(s3_ring_id[j], s3_ring_sid[j], s3_ring_ch[j], s3_ring_ts[j]);
+      }
+
+      auto it_sector = m_sector_hit_info.begin();
+      s3_sector_energy[0] = it_sector->first;
+      s3_sector_id[0] = std::get<0>(it_sector->second);
+      s3_sector_sid[0] = std::get<1>(it_sector->second);
+      s3_sector_ch[0] = std::get<2>(it_sector->second);
+      s3_sector_ts[0] = std::get<3>(it_sector->second);
+      it_sector++;
+      s3_sector_energy[1] = it_sector->first;
+      s3_sector_id[1] = std::get<0>(it_sector->second);
+      s3_sector_sid[1] = std::get<1>(it_sector->second);
+      s3_sector_ch[1] = std::get<2>(it_sector->second);
+      s3_sector_ts[1] = std::get<3>(it_sector->second);
+
+      auto it_ring = m_ring_hit_info.begin();
+      s3_ring_energy[0] = it_ring->first;
+      s3_ring_id[0] = std::get<0>(it_ring->second);
+      s3_ring_sid[0] = std::get<1>(it_ring->second);
+      s3_ring_ch[0] = std::get<2>(it_ring->second);
+      s3_ring_ts[0] = std::get<3>(it_ring->second);
+      it_ring++;
+      s3_ring_energy[1] = it_ring->first;
+      s3_ring_id[1] = std::get<0>(it_ring->second);
+      s3_ring_sid[1] = std::get<1>(it_ring->second);
+      s3_ring_ch[1] = std::get<2>(it_ring->second);
+      s3_ring_ts[1] = std::get<3>(it_ring->second);
+
+      m_sector_hit_info.clear();
+      m_ring_hit_info.clear();
+    }
+    
+    // 
+    if(!((n_s3_ring==1 && n_s3_sector==1 && std::abs(s3_ring_energy[0]-s3_sector_energy[0])<cut_s3_fb_diff) || (n_s3_ring==2 && n_s3_sector==2 && std::abs(s3_ring_energy[0]-s3_sector_energy[0])<cut_s3_fb_diff && std::abs(s3_ring_energy[1]-s3_sector_energy[1])<cut_s3_fb_diff))){
+      n_s3_sector = 0;
+      n_s3_ring = 0;
+    }
+
+    //
+    if(n_ge*(n_spider+n_s3_sector*n_s3_ring) > 0){
       n_evt++;
 
       file_out->cd();
@@ -429,17 +523,23 @@ void build::GetGeSpiderS3EventRandom()
 {
   std::cout << "start get ge si random events" << std::endl;
 
-  int n_max_ge = GENUM;
-  int n_max_spider = SPIDERNUM;
-  int n_max_s3_sector = S3SECTORNUM;
-  int n_max_s3_ring = S3RINGNUM;
+  int n_max_ge = GeNum;
+  int n_max_spider = SpiderNum;
+  int n_max_s3_sector = S3SectorNum;
+  int n_max_s3_ring = S3RingNum;
 
-  double cut_ge = CUTGE; 
-  double cut_si = CUTSI;
+  double cut_ge = CutGeEnergy; 
+  double cut_spider = CutSpiderEnergy;
+  double cut_s3 = CutS3Energy;
+  double cut_s3_fb_diff = CutS3FBDiff; 
 
   double t_prompt = (coin_width>jump_width) ? jump_width : coin_width;
   double t_min_rand = jump_width;
   double t_max_rand = jump_width+coin_width;
+
+  //
+  std::map<Double_t, std::tuple<Short_t, Short_t, Short_t, Long64_t>> m_sector_hit_info;
+  std::map<Double_t, std::tuple<Short_t, Short_t, Short_t, Long64_t>> m_ring_hit_info;
 
   //
   Int_t n_ge = 0;
@@ -585,7 +685,13 @@ void build::GetGeSpiderS3EventRandom()
       if(cid==0 && evte<=cut_ge){//if Ge data and small energy
         continue;
       }
-      if(cid==1 && evte<=cut_si){//if Si/S3 data and small energy
+
+      // cut spider small energy
+      if(cid==1 && !(std::find(v_s3_sid.begin(),v_s3_sid.end(),sid)!=v_s3_sid.end()) && evte<=cut_spider){ 
+        continue;
+      }
+      // cut s3 small energy
+      if(cid==1 && (std::find(v_s3_sid.begin(),v_s3_sid.end(),sid)!=v_s3_sid.end()) && evte<=cut_s3){ 
         continue;
       }
 
@@ -593,7 +699,7 @@ void build::GetGeSpiderS3EventRandom()
       ch2 = ch;
       energy2 = evte;
       ts2 = ts;
-    
+
       if(abs(ts2-ts1)<=t_prompt){//for ge coincidence
         if(cid==0){
           ge_sid[n_ge] = sid2;
@@ -649,7 +755,13 @@ void build::GetGeSpiderS3EventRandom()
         i++;
         continue;
       }
-      if(cid==1 && evte<=cut_si){//if si data and small energy
+      // cut spider small energy
+      if(cid==1 && !(std::find(v_s3_sid.begin(),v_s3_sid.end(),sid)!=v_s3_sid.end()) && evte<=cut_spider){ 
+        i++;
+        continue;
+      }
+      // cut s3 small energy
+      if(cid==1 && (std::find(v_s3_sid.begin(),v_s3_sid.end(),sid)!=v_s3_sid.end()) && evte<=cut_s3){ 
         i++;
         continue;
       }
@@ -714,7 +826,83 @@ void build::GetGeSpiderS3EventRandom()
     // std::cout << " n_s3_sector " << n_s3_sector << " n_s3_ring " << n_s3_ring << std::endl;
     
     CloverAddback(ge_sid, ge_ch, ge_ring_id, ge_sector_id, ge_energy, ge_ts, n_ge);
-    if(n_ge*(n_spider+n_s3_sector+n_s3_ring) > 0){
+
+    // analysis s3 events
+    // n_s3_ring==2 && n_s3_sector==1
+    if(n_s3_ring==2 && n_s3_sector==1){
+      if(std::abs(s3_ring_id[0]-s3_ring_id[1]) == 1){
+        n_s3_ring = 1;
+        if(s3_ring_energy[0]<s3_ring_energy[1]){
+          s3_ring_id[0] = s3_ring_id[1];
+          s3_ring_sid[0] = s3_ring_sid[1];
+          s3_ring_ch[0] = s3_ring_ch[1];
+        }
+
+        s3_ring_energy[0] += s3_ring_energy[1];
+      }
+    }
+    
+    // n_s3_ring==1 && n_s3_sector==2
+    if(n_s3_ring==1 && n_s3_sector==2){
+      if(std::abs(s3_sector_id[0]-s3_sector_id[1])==1 || std::abs(s3_sector_id[0]-s3_sector_id[1])==31){
+        n_s3_sector = 1;
+        if(s3_sector_energy[0]<s3_sector_energy[1]){
+          s3_sector_id[0] = s3_sector_id[1];
+          s3_sector_sid[0] = s3_sector_sid[1];
+          s3_sector_ch[0] = s3_sector_ch[1];
+        }
+
+        s3_sector_energy[0] += s3_sector_energy[1];
+      }
+    }
+
+    // n_s3_ring==2 && n_s3_sector==2
+    if(n_s3_ring==2 && n_s3_sector==2){
+      for(int j=0;j<n_s3_sector;j++){
+        m_sector_hit_info[s3_sector_energy[j]] = std::make_tuple(s3_sector_id[j], s3_sector_sid[j], s3_sector_ch[j], s3_sector_ts[j]);
+      }
+      for(int j=0;j<n_s3_ring;j++){
+        m_ring_hit_info[s3_ring_energy[j]] = std::make_tuple(s3_ring_id[j], s3_ring_sid[j], s3_ring_ch[j], s3_ring_ts[j]);
+      }
+
+      auto it_sector = m_sector_hit_info.begin();
+      s3_sector_energy[0] = it_sector->first;
+      s3_sector_id[0] = std::get<0>(it_sector->second);
+      s3_sector_sid[0] = std::get<1>(it_sector->second);
+      s3_sector_ch[0] = std::get<2>(it_sector->second);
+      s3_sector_ts[0] = std::get<3>(it_sector->second);
+      it_sector++;
+      s3_sector_energy[1] = it_sector->first;
+      s3_sector_id[1] = std::get<0>(it_sector->second);
+      s3_sector_sid[1] = std::get<1>(it_sector->second);
+      s3_sector_ch[1] = std::get<2>(it_sector->second);
+      s3_sector_ts[1] = std::get<3>(it_sector->second);
+
+      auto it_ring = m_ring_hit_info.begin();
+      s3_ring_energy[0] = it_ring->first;
+      s3_ring_id[0] = std::get<0>(it_ring->second);
+      s3_ring_sid[0] = std::get<1>(it_ring->second);
+      s3_ring_ch[0] = std::get<2>(it_ring->second);
+      s3_ring_ts[0] = std::get<3>(it_ring->second);
+      it_ring++;
+      s3_ring_energy[1] = it_ring->first;
+      s3_ring_id[1] = std::get<0>(it_ring->second);
+      s3_ring_sid[1] = std::get<1>(it_ring->second);
+      s3_ring_ch[1] = std::get<2>(it_ring->second);
+      s3_ring_ts[1] = std::get<3>(it_ring->second);
+
+      m_sector_hit_info.clear();
+      m_ring_hit_info.clear();
+    }
+    
+    // 
+    if(!((n_s3_ring==1 && n_s3_sector==1 && std::abs(s3_ring_energy[0]-s3_sector_energy[0])<cut_s3_fb_diff) || (n_s3_ring==2 && n_s3_sector==2 && std::abs(s3_ring_energy[0]-s3_sector_energy[0])<cut_s3_fb_diff && std::abs(s3_ring_energy[1]-s3_sector_energy[1])<cut_s3_fb_diff))){
+      n_s3_sector = 0;
+      n_s3_ring = 0;
+    }
+
+    //
+    if(n_ge*(n_spider+n_s3_sector*n_s3_ring) > 0){
       n_evt++;
 
       file_out->cd();
@@ -864,17 +1052,6 @@ void build::CloverAddback(Short_t *sid, Short_t *ch, Short_t *ring_id, Short_t *
 }
 
 //
-void build::S3Cor(Short_t s_sid, Short_t s_ch, Short_t s_id, Double_t s_energy, Long64_t s_ts, int s_n,
-                  Short_t r_sid, Short_t r_ch, Short_t r_id, Double_t r_energy, Long64_t r_ts, int r_n)
-{
-  if(s_n<2 && r_n<2) return;
-
-  // todo
-
-  return;
-}
-
-//
 void build::SaveFile()
 {
   file_out->cd();
@@ -975,7 +1152,7 @@ bool build::InitMapSectorRingID()
   };
 
   //
-  if((run>=457 && run<=462) || (run>=472 && run<=605) || (run>=680 && run<=718)){
+  if((run>=472 && run<=605) || (run>=680 && run<=718)){
     //
     map_spider_sector_id = {
       {10200, 2},
@@ -1476,31 +1653,31 @@ bool build::InitMapSectorRingID()
 
   //
   map_s3_ring_id = {
-    {11102, 2},
-    {11103, 4},
-    {11104, 6},
-    {11105, 8},
-    {11106, 10},
-    {11107, 12},
-    {11108, 14},
-    {11109, 16},
-    {11110, 18},
-    {11111, 20},
-    {11112, 22},
-    {11113, 24},
+    {11102, 1},
+    {11103, 3},
+    {11104, 5},
+    {11105, 7},
+    {11106, 9},
+    {11107, 11},
+    {11108, 13},
+    {11109, 15},
+    {11110, 17},
+    {11111, 19},
+    {11112, 21},
+    {11113, 23},
 
-    {11200, 1},
-    {11201, 3},
-    {11202, 5},
-    {11203, 7},
-    {11204, 9},
-    {11205, 11},
-    {11206, 13},
-    {11207, 15},
-    {11208, 17},
-    {11209, 19},
-    {11210, 21},
-    {11211, 23}
+    {11200, 2},
+    {11201, 4},
+    {11202, 6},
+    {11203, 8},
+    {11204, 10},
+    {11205, 12},
+    {11206, 14},
+    {11207, 16},
+    {11208, 18},
+    {11209, 20},
+    {11210, 22},
+    {11211, 24}
   };
 
   return 1;

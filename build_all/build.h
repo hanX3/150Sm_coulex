@@ -43,8 +43,6 @@ private:
 
 private:
   void CloverAddback(Short_t *sid, Short_t *ch, Short_t *ring_id, Short_t *sector_id, Double_t *energy, Long64_t *ts, int &n);
-  void S3Cor(Short_t s_sid, Short_t s_ch, Short_t s_id, Double_t s_energy, Long64_t s_ts, int s_n,
-             Short_t r_sid, Short_t r_ch, Short_t r_id, Double_t r_energy, Long64_t r_ts, int r_n);
 
 private:
   TBenchmark *benchmark;  
@@ -68,6 +66,5 @@ private:
 
   TFile *file_out;
 };
-
 
 #endif

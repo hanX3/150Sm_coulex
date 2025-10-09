@@ -2,7 +2,7 @@
 
 max_jobs=60
 
-mkdir -p terminal_out
+mkdir -p terminal_cout
 
 while read run; do
   ./build $run 200 300 &

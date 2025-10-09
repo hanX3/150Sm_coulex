@@ -6,8 +6,7 @@ void draw_sample(int run, int win, int jump)
 {
   gROOT->SetBatch(1);
 
-  mkdir(TString::Format("./fig/%d_%d", win, jump).Data(), 0777);
-  mkdir(TString::Format("./fig/%d_%d/%04d", win, jump, run).Data(), 0777);
+  mkdir(Form("./fig/%04d", run), 0777);
 
   int colors[12] = {
     TColor::GetColor("#E41A1C"), TColor::GetColor("#377EB8"),
@@ -19,7 +18,7 @@ void draw_sample(int run, int win, int jump)
   };
 
   //
-  TFile *fi =  TFile::Open(TString::Format("../rootfile/data%04d_build_%dns_jump_%dns_hist_event.root",run,win,jump).Data());
+  TFile *fi =  TFile::Open(Form("../../rootfile/data%04d_build_%dns_jump_%dns_hist_event.root",run,win,jump));
   if(fi->IsZombie()){
     cout << "cannot open the file." << std::endl;
     return;
@@ -33,16 +32,25 @@ void draw_sample(int run, int win, int jump)
   TH2D *hh;
 
   hh = (TH2D*)fi->Get("hh_spider_spot");
-  hh->Draw("colz");
-  c1->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, hh->GetName()).Data());
+  hh->SetTitle("spider beam spot");
+  hh->GetXaxis()->SetTitle("x");
+  hh->GetYaxis()->SetTitle("y");
+  hh->Draw("col");
+  c1->SaveAs(TString::Format("./fig/%04d/c_%s.png", run, hh->GetName()).Data());
 
   hh = (TH2D*)fi->Get("hh_s3_sector_spot");
-  hh->Draw("colz");
-  c1->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, hh->GetName()).Data());
+  hh->SetTitle("s3 sector beam spot");
+  hh->GetXaxis()->SetTitle("x");
+  hh->GetYaxis()->SetTitle("y");
+  hh->Draw("col");
+  c1->SaveAs(TString::Format("./fig/%04d/c_%s.png", run, hh->GetName()).Data());
 
   hh = (TH2D*)fi->Get("hh_s3_ring_spot");
-  hh->Draw("colz");
-  c1->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, hh->GetName()).Data());
+  hh->SetTitle("s3 ring beam spot");
+  hh->GetXaxis()->SetTitle("x");
+  hh->GetYaxis()->SetTitle("y");
+  hh->Draw("col");
+  c1->SaveAs(TString::Format("./fig/%04d/c_%s.png", run, hh->GetName()).Data());
 
   //
   TCanvas *c2 = new TCanvas("c2", "", 0, 0, 400, 300);
@@ -53,87 +61,130 @@ void draw_sample(int run, int win, int jump)
   TH1D *h;
   
   h = (TH1D*)fi->Get("hpg");
+  h->SetTitle("particle-gamma time difference");
+  h->GetXaxis()->SetTitle("time difference [ns]");
+  h->GetYaxis()->SetTitle("counts");
   h->GetXaxis()->SetRangeUser(-500, 500);
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%04d/c_%s.png", run, h->GetName()).Data());
 
   h = (TH1D*)fi->Get("hgg");
+  h->SetTitle("gamma-gamma time difference");
+  h->GetXaxis()->SetTitle("time difference [ns]");
+  h->GetYaxis()->SetTitle("counts");
   h->GetXaxis()->SetRangeUser(-500, 500);
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%04d/c_%s.png", run, h->GetName()).Data());
 
   h = (TH1D*)fi->Get("hpp");
+  h->SetTitle("particle-particle time difference");
+  h->GetXaxis()->SetTitle("time difference [ns]");
+  h->GetYaxis()->SetTitle("counts");
   h->GetXaxis()->SetRangeUser(-500, 500);
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%04d/c_%s.png", run, h->GetName()).Data());
 
   h = (TH1D*)fi->Get("h_spider_ge");
+  h->SetTitle("spider particle and ge gamma time difference");
+  h->GetXaxis()->SetTitle("time difference [ns]");
+  h->GetYaxis()->SetTitle("counts");
   h->GetXaxis()->SetRangeUser(-500, 500);
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%04d/c_%s.png", run, h->GetName()).Data());
 
   h = (TH1D*)fi->Get("h_s3_ge");
+  h->SetTitle("s3 particle and ge gamma time difference");
+  h->GetXaxis()->SetTitle("time difference [ns]");
+  h->GetYaxis()->SetTitle("counts");
   h->GetXaxis()->SetRangeUser(-500, 500);
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
-
-  h = (TH1D*)fi->Get("h_spider_spider");
-  h->GetXaxis()->SetRangeUser(-500, 500);
-  h->Draw();
-  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%04d/c_%s.png", run, h->GetName()).Data());
 
   h = (TH1D*)fi->Get("h_s3_s3");
+  h->SetTitle("s3 particle-particle time difference");
+  h->GetXaxis()->SetTitle("time difference [ns]");
+  h->GetYaxis()->SetTitle("counts");
   h->GetXaxis()->SetRangeUser(-500, 500);
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%04d/c_%s.png", run, h->GetName()).Data());
 
   // hits
   c2->SetLogy();
   
   h = (TH1D*)fi->Get("h_n_spider");
+  h->SetTitle("n hits in spider");
+  h->GetXaxis()->SetTitle("hits number");
+  h->GetYaxis()->SetTitle("counts");
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%04d/c_%s.png", run, h->GetName()).Data());
   
   h = (TH1D*)fi->Get("h_n_s3_sector");
+  h->SetTitle("n hits in s3 sector");
+  h->GetXaxis()->SetTitle("hits number");
+  h->GetYaxis()->SetTitle("counts");
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%04d/c_%s.png", run, h->GetName()).Data());
   
   h = (TH1D*)fi->Get("h_n_s3_ring");
+  h->SetTitle("n hits in s3 ring");
+  h->GetXaxis()->SetTitle("hits number");
+  h->GetYaxis()->SetTitle("counts");
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%04d/c_%s.png", run, h->GetName()).Data());
   
   // id
   h = (TH1D*)fi->Get("h_spider_sector_id");
+  h->SetTitle("spider sector id");
+  h->GetXaxis()->SetTitle("sector id");
+  h->GetYaxis()->SetTitle("counts");
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%04d/c_%s.png", run, h->GetName()).Data());
   
   h = (TH1D*)fi->Get("h_spider_ring_id");
+  h->SetTitle("spider ring id");
+  h->GetXaxis()->SetTitle("ring id");
+  h->GetYaxis()->SetTitle("counts");
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%04d/c_%s.png", run, h->GetName()).Data());
   
   h = (TH1D*)fi->Get("h_s3_sector_id");
+  h->GetXaxis()->SetTitle("sector id");
+  h->GetYaxis()->SetTitle("counts");
+  h->SetTitle("s3 sector id");
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%04d/c_%s.png", run, h->GetName()).Data());
   
   h = (TH1D*)fi->Get("h_s3_ring_id");
+  h->GetXaxis()->SetTitle("ring id");
+  h->GetYaxis()->SetTitle("counts");
+  h->SetTitle("s3 ring id");
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%04d/c_%s.png", run, h->GetName()).Data());
 
   // spider th2
   c2->SetLogy(0); 
   c2->SetLogz(); 
 
   hh = (TH2D*)fi->Get("hh_spider_sector_energy");
-  hh->Draw("colz");
-  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, hh->GetName()).Data());
+  hh->SetTitle("th2 spider sector energy vs. id");
+  hh->GetXaxis()->SetTitle("sector id");
+  hh->GetYaxis()->SetTitle("energy [keV]");
+  hh->Draw("col");
+  c2->SaveAs(TString::Format("./fig/%04d/c_%s.png", run, hh->GetName()).Data());
 
   hh = (TH2D*)fi->Get("hh_spider_ring_energy");
-  hh->Draw("colz");
-  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, hh->GetName()).Data());
+  hh->SetTitle("th2 spider ring energy vs. id");
+  hh->GetXaxis()->SetTitle("ring id");
+  hh->GetYaxis()->SetTitle("energy [keV]");
+  hh->Draw("col");
+  c2->SaveAs(TString::Format("./fig/%04d/c_%s.png", run, hh->GetName()).Data());
 
   hh = (TH2D*)fi->Get("hh_spider_energy");
-  hh->Draw("colz");
-  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, hh->GetName()).Data());
+  hh->SetTitle("th2 spider energy vs. id");
+  hh->GetXaxis()->SetTitle("spider id");
+  hh->GetYaxis()->SetTitle("energy [keV]");
+  hh->Draw("col");
+  c2->SaveAs(TString::Format("./fig/%04d/c_%s.png", run, hh->GetName()).Data());
 
   // spider
   TH1D *h1[96];
@@ -141,114 +192,110 @@ void draw_sample(int run, int win, int jump)
   c2->SetLogy();
   c2->SetLogz(0);
 
-  TLegend *leg1 = new TLegend(0.7, 0.4, 0.98, 0.95);
+  TLegend *leg1 = new TLegend(0.5, 0.4, 0.98, 0.95);
   for(int i=0;i<12;i++){
     h1[i] = (TH1D*)fi->Get(TString::Format("h_spider_sector%02d_energy",i+1).Data());
     h1[i]->SetLineColor(colors[i]);
+    h1[i]->Rebin(8);
 
-    if(i==0) h1[i]->Draw();
-    else h1[i]->Draw("same");
+    if(i==0){
+      h1[i]->SetTitle("spider different sector energy");
+      h1[i]->GetXaxis()->SetTitle("energy [keV]");
+      h1[i]->GetYaxis()->SetTitle("counts");
+      h1[i]->Draw();
+    }else h1[i]->Draw("same");
 
     leg1->AddEntry(h1[i], h1[i]->GetName());
   }
   leg1->Draw("same");
-  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_spider_sector_energy_all.png", win, jump, run).Data());
+  c2->SaveAs(TString::Format("./fig/%04d/c_spider_sector_energy_all.png", run).Data());
 
-  TLegend *leg2 = new TLegend(0.7, 0.4, 0.98, 0.95);
+  TLegend *leg2 = new TLegend(0.6, 0.4, 0.98, 0.95);
   for(int i=0;i<8;i++){
     h1[i] = (TH1D*)fi->Get(TString::Format("h_spider_ring%02d_energy",i+1).Data());
     h1[i]->SetLineColor(colors[i]);
+    h1[i]->Rebin(8);
 
-    if(i==0) h1[i]->Draw();
-    else h1[i]->Draw("same");
+    if(i==0){
+      h1[i]->SetTitle("spider different ring energy");
+      h1[i]->GetXaxis()->SetTitle("energy [keV]");
+      h1[i]->GetYaxis()->SetTitle("counts");
+      h1[i]->Draw();
+    }else h1[i]->Draw("same");
 
     leg2->AddEntry(h1[i], h1[i]->GetName());
   }
   leg2->Draw("same");
-  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_spider_ring_energy_all.png", win, jump, run).Data());
-
-  TLegend *leg3[8];
-  for(int i=0;i<8;i++){
-    leg3[i] = new TLegend(0.7, 0.4, 0.98, 0.95);
-    for(int j=0;j<12;j++){
-      h1[i*12+j] = (TH1D*)fi->Get(TString::Format("h_spider_sector%02d_ring%02d_energy",j+1,i+1).Data());
-      h1[i*12+j]->SetLineColor(colors[j]);
-      if(j==0) h1[i*12+j]->Draw();
-      else h1[i*12+j]->Draw("same");
-
-      leg3[i]->AddEntry(h1[i*12+j], h1[i*12+j]->GetName());
-    }
-    leg3[i]->Draw("same");
-    c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_spider_ring%02d_energy.png", win, jump, run, i+1).Data());
-  }
-
-  TLegend *leg4[12];
-  for(int i=0;i<12;i++){
-    leg4[i] = new TLegend(0.7, 0.4, 0.98, 0.95);
-    for(int j=0;j<8;j++){
-      h1[i*8+j] = (TH1D*)fi->Get(TString::Format("h_spider_sector%02d_ring%02d_energy",i+1,j+1).Data());
-      h1[i*8+j]->SetLineColor(colors[j]);
-      if(j==0) h1[i*8+j]->Draw();
-      else h1[i*8+j]->Draw("same");
-
-      leg4[i]->AddEntry(h1[i*8+j], h1[i*8+j]->GetName());
-    }
-    leg4[i]->Draw("same");
-    c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_spider_sector%02d_energy.png", win, jump, run, i+1).Data());
-  }
+  c2->SaveAs(TString::Format("./fig/%04d/c_spider_ring_energy_all.png", run).Data());
 
   // s3 th2
   c2->SetLogy(0);
   c2->SetLogz(); 
 
   hh = (TH2D*)fi->Get("hh_s3_sector_energy");
-  hh->Draw("colz");
-  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, hh->GetName()).Data());
+  hh->SetTitle("s3 sector energy vs. id");
+  hh->GetXaxis()->SetTitle("sector id");
+  hh->GetYaxis()->SetTitle("energy [keV]");
+  hh->Draw("col");
+  c2->SaveAs(TString::Format("./fig/%04d/c_%s.png", run, hh->GetName()).Data());
 
   hh = (TH2D*)fi->Get("hh_s3_ring_energy");
-  hh->Draw("colz");
-  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, hh->GetName()).Data());
+  hh->SetTitle("s3 ring energy vs. id");
+  hh->GetXaxis()->SetTitle("ring id");
+  hh->GetYaxis()->SetTitle("energy [keV]");
+  hh->Draw("col");
+  c2->SaveAs(TString::Format("./fig/%04d/c_%s.png", run, hh->GetName()).Data());
 
   // 
   c2->SetLogy();
   c2->SetLogz(0);
 
   h = (TH1D*)fi->Get("h_s3_sector_energy");
+  h->SetTitle("s3 sector energy");
+  h->GetXaxis()->SetTitle("energy [keV]");
+  h->GetYaxis()->SetTitle("counts");
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%04d/c_%s.png", run, h->GetName()).Data());
   
   h = (TH1D*)fi->Get("h_s3_ring_energy");
+  h->SetTitle("s3 ring energy");
+  h->GetXaxis()->SetTitle("energy [keV]");
+  h->GetYaxis()->SetTitle("counts");
   h->Draw();
-  c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_%s.png", win, jump, run, h->GetName()).Data());
+  c2->SaveAs(TString::Format("./fig/%04d/c_%s.png", run, h->GetName()).Data());
   
-  TLegend *leg5[4];
-  for(int i=0;i<4;i++){
-    leg5[i] = new TLegend(0.7, 0.4, 0.98, 0.95);
-    for(int j=0;j<8;j++){
-      h1[i*4+j] = (TH1D*)fi->Get(TString::Format("h_s3_sector%02d_energy",i*4+j+1).Data());
-      h1[i*4+j]->SetLineColor(colors[j]);
+  TLegend *leg5 = new TLegend(0.7, 0.05, 0.98, 0.95);
+  for(int i=0;i<32;i++){
+    h1[i] = (TH1D*)fi->Get(TString::Format("h_s3_sector%02d_energy",i+1).Data());
+    h1[i]->SetLineColor(colors[i%12]);
+    h1[i]->Rebin(8);
       
-      if(j==0) h1[i*4+j]->Draw();
-      else h1[i*4+j]->Draw("same");
-      leg5[i]->AddEntry(h1[i*4+j], h1[i*4+j]->GetName());
-    }
-    leg5[i]->Draw("same");
-    c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_s3_sector%02d_energy.png", win, jump, run, i+1).Data());
+    if(i==0){
+      h1[i]->SetTitle("s3 different sector energy");
+      h1[i]->GetXaxis()->SetTitle("energy [keV]");
+      h1[i]->GetYaxis()->SetTitle("counts");
+      h1[i]->Draw();
+    }else h1[i]->Draw("same");
+    leg5->AddEntry(h1[i], h1[i]->GetName());
+    leg5->Draw("same");
+    c2->SaveAs(TString::Format("./fig/%04d/c_s3_diff_sector_energy.png", run).Data());
   }
 
-  TLegend *leg6[4];
-  for(int i=0;i<4;i++){
-    leg6[i] = new TLegend(0.7, 0.4, 0.98, 0.95);
-    for(int j=0;j<6;j++){
-      h1[i*4+j] = (TH1D*)fi->Get(TString::Format("h_s3_ring%02d_energy",i*4+j+1).Data());
-      h1[i*4+j]->SetLineColor(colors[j]);
+  TLegend *leg6 = new TLegend(0.7, 0.05, 0.98, 0.95);;
+  for(int i=0;i<24;i++){
+    h1[i] = (TH1D*)fi->Get(TString::Format("h_s3_ring%02d_energy",i+1).Data());
+    h1[i]->SetLineColor(colors[i%12]);
+    h1[i]->Rebin(8);
 
-      if(j==0) h1[i*4+j]->Draw();
-      else h1[i*4+j]->Draw("same");
-      leg6[i]->AddEntry(h1[i*4+j], h1[i*4+j]->GetName());
-    }
-    leg6[i]->Draw("same");
-    c2->SaveAs(TString::Format("./fig/%d_%d/%04d/c_s3_ring%02d_energy.png", win, jump, run, i+1).Data());
+    if(i==0){
+      h1[i]->SetTitle("s3 different ring energy");
+      h1[i]->GetXaxis()->SetTitle("energy [keV]");
+      h1[i]->GetYaxis()->SetTitle("counts");
+      h1[i]->Draw();
+    }else h1[i]->Draw("same");
+    leg6->AddEntry(h1[i], h1[i]->GetName());
+    leg6->Draw("same");
+    c2->SaveAs(TString::Format("./fig/%04d/c_s3_diff_ring_energy.png", run).Data());
   }
 
   // ge spectra
@@ -294,6 +341,9 @@ void draw_sample(int run, int win, int jump)
         leg7[k] = new TLegend(0.7, 0.4, 0.98, 0.95);
         h_ge[k]->SetLineColor(colors[0]);
         h_ge[k]->GetYaxis()->SetRangeUser(1., std::pow(10, std::ceil(std::log10(h_ge[k]->GetMaximum()))));
+        h_ge[k]->SetTitle(Form("ge ring%d sector%d", i, j));
+        h_ge[k]->GetXaxis()->SetTitle("energy [keV]");
+        h_ge[k]->GetYaxis()->SetTitle("counts");
         h_ge[k]->Draw();
         leg7[k]->AddEntry(h_ge[k], h_ge[k]->GetName());
 
@@ -314,7 +364,7 @@ void draw_sample(int run, int win, int jump)
         leg7[k]->AddEntry(h_ge_s3_cut[k], h_ge_s3_cut[k]->GetName());
 
         leg7[k]->Draw("same");
-        c3->SaveAs(TString::Format("./fig/%d_%d/%04d/c_ge_ring%d_sector%d.png",win, jump, run,i,j).Data());
+        c3->SaveAs(TString::Format("./fig/%04d/c_ge_ring%d_sector%d.png", run,i,j).Data());
       }
       
       k++;
@@ -324,6 +374,9 @@ void draw_sample(int run, int win, int jump)
   TLegend *leg8 = new TLegend(0.7, 0.4, 0.98, 0.95);
   h_ge_all->SetLineColor(colors[0]);
   h_ge_all->GetYaxis()->SetRangeUser(1., std::pow(10, std::ceil(std::log10(h_ge_all->GetMaximum()))));
+  h_ge_all->SetTitle("all ge");
+  h_ge_all->GetXaxis()->SetTitle("energy [keV]");
+  h_ge_all->GetYaxis()->SetTitle("counts");
   h_ge_all->Draw();
   leg8->AddEntry(h_ge_all, h_ge_all->GetName());
 
@@ -344,6 +397,5 @@ void draw_sample(int run, int win, int jump)
   leg8->AddEntry(h_ge_s3_cut_all, h_ge_s3_cut_all->GetName());
 
   leg8->Draw("same");
-  c3->SaveAs(TString::Format("./fig/%d_%d/%04d/c_ge_all.png",win, jump, run).Data());
-
+  c3->SaveAs(TString::Format("./fig/%04d/c_ge_all.png", run).Data());
 }

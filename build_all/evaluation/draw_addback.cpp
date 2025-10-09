@@ -1,13 +1,12 @@
 //
 void draw_addback()
 {
-  //TFile *fi1 = TFile::Open("../rootfile/data0472_build_200ns.root");
-  TFile *fi1 = TFile::Open("./data0588_build_200ns_jump_200ns.root");
+  TFile *fi1 = TFile::Open("../../rootfile/data0472_build_200ns_jump_300ns_no_ab.root");
   if(fi1->IsZombie()){
     cout << "can not open file 1." << endl;
   }
 
-  TFile *fi2 = TFile::Open("../rootfile/data0588_build_200ns_jump_200ns.root");
+  TFile *fi2 = TFile::Open("../../rootfile/data0588_build_200ns_jump_300ns.root");
   if(fi2->IsZombie()){
     cout << "can not open file 2." << endl;
   }

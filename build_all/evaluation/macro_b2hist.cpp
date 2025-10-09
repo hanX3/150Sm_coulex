@@ -1,5 +1,5 @@
 //
-void macro(int run, int win, int jump)
+void macro_b2hist(int run, int win, int jump)
 {
   gROOT->ProcessLine(".L raw.cpp");
   gROOT->ProcessLine(".L b2hist.cpp");

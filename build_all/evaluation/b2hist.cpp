@@ -1,9 +1,14 @@
-//
+// str is tree name 
 void b2hist(int run, int win, int jump, TString str)
 {
   TRandom3 *rndm = new TRandom3((Long64_t)time(0)); 
 
-  TFile *fi = TFile::Open(TString::Format("../rootfile/data%04d_build_%dns_jump_%dns.root",run,win,jump).Data());
+  //
+  double cut_spider = 20000; // keV
+  double cut_s3 = 20000; // keV
+
+  //
+  TFile *fi = TFile::Open(Form("../../rootfile/data%04d_build_%dns_jump_%dns.root",run,win,jump));
   if(fi->IsZombie()){
     std::cout << "open file run " << run << " error!" << std::endl;
     delete fi;
@@ -11,11 +16,11 @@ void b2hist(int run, int win, int jump, TString str)
     return ;
   }
 
-  TTree *tr = (TTree*)fi->Get(TString::Format("tr_%s",str.Data()).Data());
+  TTree *tr = (TTree*)fi->Get(Form("tr_%s",str.Data()));
   raw *rd = new raw(tr); 
 
   //
-  TFile *fo = new TFile(TString::Format("../rootfile/data%04d_build_%dns_jump_%dns_hist_%s.root",run,win,jump,str.Data()).Data(), "recreate");
+  TFile *fo = new TFile(Form("../../rootfile/data%04d_build_%dns_jump_%dns_hist_%s.root",run,win,jump,str.Data()), "recreate");
   
   //
   double spider_r_min[8] = {4.63, 14.29, 22.99, 31.69, 40.39, 49.09, 57.79, 66.49};
@@ -37,11 +42,6 @@ void b2hist(int run, int win, int jump, TString str)
     s3_phi_max[i] = 11.25*(i+1);
   }
 
-  //
-  double cut_ge = 50.;
-  double cut_spider = 20000;
-  double cut_s3 = 30000;
-
   vector<Long64_t> v_ge_ts;
   vector<Long64_t> v_spider_ts;
   vector<Long64_t> v_s3_sector_ts;
@@ -55,6 +55,7 @@ void b2hist(int run, int win, int jump, TString str)
   TH1D *h_spider_spider, *h_spider_s3, *h_s3_s3;
   TH2D *hh_spider_spot, *hh_s3_sector_spot, *hh_s3_ring_spot;
 
+  // time diff
   hpg = new TH1D("hpg", "", 150, -3000, 3000);
   hgg = new TH1D("hgg", "", 150, -3000, 3000);
   hpp = new TH1D("hpp", "", 150, -3000, 3000);
@@ -62,6 +63,7 @@ void b2hist(int run, int win, int jump, TString str)
   h_s3_ge = new TH1D("h_s3_ge", "", 300, -3000, 3000);
   h_spider_spider = new TH1D("h_spider_spider", "", 300, -3000, 3000);
   h_s3_s3 = new TH1D("h_s3_s3", "", 300, -3000, 3000);
+  // beam spot
   hh_spider_spot = new TH2D("hh_spider_spot", "", 320,-80,80,320,-80,80);
   hh_s3_sector_spot = new TH2D("hh_s3_sector_spot", "", 720,-36,36,720,-36,36);
   hh_s3_ring_spot = new TH2D("hh_s3_ring_spot", "", 360,-36,36,360,-36,36);
@@ -83,12 +85,6 @@ void b2hist(int run, int win, int jump, TString str)
     v_si_ts.clear();
 
     //
-    for(int j=0;j<rd->n_ge;j++){
-      if(rd->ge_energy[j]<cut_ge) continue;
-      v_ge_ts.push_back(rd->ge_ts[j]);
-    }
-    if(v_ge_ts.size()==0) continue;
-
     for(int j=0;j<rd->n_spider;j++){
       if(rd->spider_energy[j]<cut_spider) continue;
       v_spider_ts.push_back(rd->spider_ts[j]);
@@ -208,7 +204,6 @@ void b2hist(int run, int win, int jump, TString str)
   TH2D *hh_spider_sector_energy, *hh_spider_ring_energy;
   TH2D* hh_spider_energy;
   TH1D *h_spider_sector_energy_single[12], *h_spider_ring_energy_single[8];
-  TH1D *h_spider_sector_ring_energy_single[96];
 
   h_n_spider = new TH1D("h_n_spider", "", 96, 0, 96);
   h_spider_sector_id = new TH1D("h_spider_sector_id", "", 20, 0, 20);
@@ -224,12 +219,6 @@ void b2hist(int run, int win, int jump, TString str)
   for(int i=0;i<8;i++){
     h_spider_ring_energy_single[i] = new TH1D(TString::Format("h_spider_ring%02d_energy",i+1).Data(), "", 1000, 0, 100000);
     tr->Draw(TString::Format("spider_energy>>%s",h_spider_ring_energy_single[i]->GetName()).Data(), TString::Format("spider_ring_id==%d",i+1).Data(), "goff");
-  }
-  for(int i=0;i<12;i++){// sector
-    for(int j=0;j<8;j++){// ring
-      h_spider_sector_ring_energy_single[i*8+j] = new TH1D(TString::Format("h_spider_sector%02d_ring%02d_energy",i+1,j+1).Data(), "", 1000, 0, 100000);
-      tr->Draw(TString::Format("spider_energy>>%s",h_spider_sector_ring_energy_single[i*8+j]->GetName()).Data(), TString::Format("spider_sector_id==%d && spider_ring_id==%d",i+1,j+1).Data(), "goff");
-    }
   }
 
   TString str_cut_spider = TString::Format("spider_energy>%f", cut_spider);
@@ -352,9 +341,6 @@ void b2hist(int run, int win, int jump, TString str)
   }
   for(int i=0;i<8;i++){
     h_spider_ring_energy_single[i]->Write();
-  }
-  for(int i=0;i<96;i++){
-    h_spider_sector_ring_energy_single[i]->Write();
   }
 
   //

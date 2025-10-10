@@ -4,8 +4,8 @@ void b2hist(int run, int win, int jump, TString str)
   TRandom3 *rndm = new TRandom3((Long64_t)time(0)); 
 
   //
-  double cut_spider = 20000; // keV
-  double cut_s3 = 20000; // keV
+  double cut_spider = 10000; // keV
+  double cut_s3 = 30000; // keV
 
   //
   TFile *fi = TFile::Open(Form("../../rootfile/data%04d_build_%dns_jump_%dns.root",run,win,jump));

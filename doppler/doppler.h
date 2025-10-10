@@ -81,12 +81,6 @@ private:
   Double_t e_raw[GENUM];
   Double_t e_dc_p[GENUM];
   Double_t e_dc_r[GENUM];
-  Double_t e_dc_p_10fs[GENUM];
-  Double_t e_dc_r_10fs[GENUM];
-  Double_t e_dc_p_100fs[GENUM];
-  Double_t e_dc_r_100fs[GENUM];
-  Double_t e_dc_p_1000fs[GENUM];
-  Double_t e_dc_r_1000fs[GENUM];
 };
 
 #endif

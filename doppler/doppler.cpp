@@ -49,12 +49,6 @@ doppler::doppler(const std::string &filename_in, const std::string &filename_out
   tr_event_out->Branch("e_raw", e_raw, "e_raw[hits]/D");
   tr_event_out->Branch("e_dc_p", e_dc_p, "e_dc_p[hits]/D");
   tr_event_out->Branch("e_dc_r", e_dc_r, "e_dc_r[hits]/D");
-  tr_event_out->Branch("e_dc_p_10fs", e_dc_p_10fs, "e_dc_p_10fs[hits]/D");
-  tr_event_out->Branch("e_dc_r_10fs", e_dc_r_10fs, "e_dc_r_10fs[hits]/D");
-  tr_event_out->Branch("e_dc_p_100fs", e_dc_p_100fs, "e_dc_p_100fs[hits]/D");
-  tr_event_out->Branch("e_dc_r_100fs", e_dc_r_100fs, "e_dc_r_100fs[hits]/D");
-  tr_event_out->Branch("e_dc_p_1000fs", e_dc_p_1000fs, "e_dc_p_1000fs[hits]/D");
-  tr_event_out->Branch("e_dc_r_1000fs", e_dc_r_1000fs, "e_dc_r_1000fs[hits]/D");
 
   tr_bg_out = new TTree("tr_bg", "bg doppler data");
   tr_bg_out->Branch("hits", &hits, "hits/I");
@@ -72,12 +66,6 @@ doppler::doppler(const std::string &filename_in, const std::string &filename_out
   tr_bg_out->Branch("e_raw", e_raw, "e_raw[hits]/D");
   tr_bg_out->Branch("e_dc_p", e_dc_p, "e_dc_p[hits]/D");
   tr_bg_out->Branch("e_dc_r", e_dc_r, "e_dc_r[hits]/D");
-  tr_bg_out->Branch("e_dc_p_10fs", e_dc_p_10fs, "e_dc_p_10fs[hits]/D");
-  tr_bg_out->Branch("e_dc_r_10fs", e_dc_r_10fs, "e_dc_r_10fs[hits]/D");
-  tr_bg_out->Branch("e_dc_p_100fs", e_dc_p_100fs, "e_dc_p_100fs[hits]/D");
-  tr_bg_out->Branch("e_dc_r_100fs", e_dc_r_100fs, "e_dc_r_100fs[hits]/D");
-  tr_bg_out->Branch("e_dc_p_1000fs", e_dc_p_1000fs, "e_dc_p_1000fs[hits]/D");
-  tr_bg_out->Branch("e_dc_r_1000fs", e_dc_r_1000fs, "e_dc_r_1000fs[hits]/D");
 
   //
   tr_event = (TTree*)file_in->Get("tr_event");
@@ -124,7 +112,6 @@ void doppler::Process()
 //
 void doppler::ProcessDoppler(event *ed, TTree *tr)
 {
-  double s3_cor_diff = S3CORDIFF;
   file_out->cd();
   Clear();
 
@@ -179,7 +166,6 @@ void doppler::ProcessDoppler(event *ed, TTree *tr)
         v_ge_index.push_back(j);
       }
     }
-    // std::cout << i << " n_ge " << ed->ge_sid[0] << " " << ed->ge_ch[0] << " " <<  ed->ge_energy[0] << " " << ed->n_ge << " v_ge_index " << v_ge_index.size() << std::endl;
 
     // spider
     for(int j=0;j<ed->n_spider;j++){
@@ -215,7 +201,7 @@ void doppler::ProcessDoppler(event *ed, TTree *tr)
         v_s3_ring_p_index.push_back(j);
       }
       if(ed->s3_ring_energy[j]>map_s3_ring_cut_r[key].first && ed->s3_ring_energy[j]<map_s3_ring_cut_r[key].second){
-        num_s3_sector_r++;
+        num_s3_ring_r++;
         v_s3_ring_r_index.push_back(j);
       }
     }
@@ -226,6 +212,8 @@ void doppler::ProcessDoppler(event *ed, TTree *tr)
     //           << " \nnumber_spider_r      " << num_spider_r
     //           << " \nnumber_s3_sector_p   " << num_s3_sector_p
     //           << " \nnumber_s3_sector_r   " << num_s3_sector_r
+    //           << " \nnumber_s3_ring_p     " << num_s3_ring_p
+    //           << " \nnumber_s3_ring_r     " << num_s3_ring_r
     //           << " \nflag_ge size          " << v_ge_index.size()
     //           << " \nflag_spider_p size    " << v_spider_p_index.size()
     //           << " flag_spider_r size      " << v_spider_r_index.size()
@@ -234,6 +222,19 @@ void doppler::ProcessDoppler(event *ed, TTree *tr)
     //           << " \nflag_s3_ring_p size   " << v_s3_ring_p_index.size()
     //           << " flag_s3_ring_r size     " << v_s3_ring_r_index.size()
     //           << "\n" << std::endl;
+    // for(int j=0;j<ed->n_ge;j++){
+    //   std::cout << "ge energy " << ed->ge_energy[j] << std::endl;
+    // }
+    // for(int j=0;j<ed->n_spider;j++){
+    //   std::cout << "spider energy " << ed->spider_energy[j] << std::endl;
+    // }
+    // for(int j=0;j<ed->n_s3_ring;j++){
+    //   std::cout << "s3 ring energy " << ed->s3_ring_energy[j] << std::endl;
+    // }
+    // for(int j=0;j<ed->n_s3_sector;j++){
+    //   std::cout << "s3 sector energy " << ed->s3_sector_energy[j] << std::endl;
+    // }
+    // std::cout << "\n\n";
 
     // spider p
     if(num_spider_p>1){
@@ -276,50 +277,43 @@ void doppler::ProcessDoppler(event *ed, TTree *tr)
     // s3 p
     if(num_s3_sector_p==0 || num_s3_ring_p==0){
       flag_s3_p = 0;
+      num_s3_sector_p = 0;
+      num_s3_ring_p = 0;
     }else if (num_s3_sector_p==1 && num_s3_ring_p==1){
-      double e_sector = ed->s3_sector_energy[v_s3_sector_p_index[0]];
-      double e_ring = ed->s3_ring_energy[v_s3_ring_p_index[0]];
-
-      flag_s3_p = (std::abs(e_sector-e_ring) < s3_cor_diff) ? 1 : 0;
+      flag_s3_p = 1;
     }else if (num_s3_sector_p==1 && num_s3_ring_p==2){
+      flag_s3_p = 1;
+      num_s3_sector_p = 1;
+      num_s3_ring_p = 1;
+
       double e1 = ed->s3_sector_energy[v_s3_sector_p_index[0]];
       double e2 = ed->s3_ring_energy[v_s3_ring_p_index[0]];
       double e3 = ed->s3_ring_energy[v_s3_ring_p_index[1]];
 
-      bool match_e2 = (std::abs(e1-e2) < s3_cor_diff);
-      bool match_e3 = (std::abs(e1-e3) < s3_cor_diff);
-
-      if(match_e2 && !match_e3){
-        flag_s3_p = 1;
+      if(std::abs(e1-e2) < (std::abs(e1-e3))){
         v_s3_ring_p_index.erase(v_s3_ring_p_index.begin()+1);
-      }else if(!match_e2 && match_e3){
-        flag_s3_p = 1;
-        v_s3_ring_p_index.erase(v_s3_ring_p_index.begin());
-      }else if(match_e2 && match_e3){
-        int id1 = ed->s3_ring_id[v_s3_ring_p_index[0]];
-        int id2 = ed->s3_ring_id[v_s3_ring_p_index[1]];
-        if(std::abs(id1-id2) == 1){
-          if(std::abs(e1-(e2+e3)) < s3_cor_diff){
-            flag_s3_p = 1;
-            if(e2>e3){
-              v_s3_ring_p_index.erase(v_s3_ring_p_index.begin()+1);
-            }else{
-              v_s3_ring_p_index.erase(v_s3_ring_p_index.begin());
-            }
-          }else{
-            flag_s3_p = 0;
-            v_s3_ring_p_index.clear();
-          }
-        }else{
-          flag_s3_p = 0;
-          v_s3_ring_p_index.clear();
-        }
       }else{
-        flag_s3_p = 0;
-        v_s3_ring_p_index.clear();
+        v_s3_ring_p_index.erase(v_s3_ring_p_index.begin());
       }
-    }else{ // to do
+    }else if(num_s3_sector_p==2 && num_s3_ring_p==1){
+      flag_s3_p = 1;
+      num_s3_sector_p = 1;
+      num_s3_ring_p = 1;
+
+      double e1 = ed->s3_ring_energy[v_s3_ring_p_index[0]];
+      double e2 = ed->s3_sector_energy[v_s3_sector_p_index[0]];
+      double e3 = ed->s3_sector_energy[v_s3_sector_p_index[1]];
+
+      if(std::abs(e1-e2) < (std::abs(e1-e3))){
+        v_s3_sector_p_index.erase(v_s3_sector_p_index.begin()+1);
+      }else{
+        v_s3_sector_p_index.erase(v_s3_sector_p_index.begin());
+      }
+    }else{
       flag_s3_p = 0;
+      num_s3_sector_p = 0;
+      num_s3_ring_p = 0;
+
       v_s3_sector_p_index.clear();
       v_s3_ring_p_index.clear();
     }
@@ -327,50 +321,43 @@ void doppler::ProcessDoppler(event *ed, TTree *tr)
     // s3 r
     if(num_s3_sector_r==0 || num_s3_ring_r==0){
       flag_s3_r = 0;
+      num_s3_sector_r = 0;
+      num_s3_ring_r = 0;
     }else if (num_s3_sector_r==1 && num_s3_ring_r==1){
-      double e_sector = ed->s3_sector_energy[v_s3_sector_r_index[0]];
-      double e_ring = ed->s3_ring_energy[v_s3_ring_r_index[0]];
-
-      flag_s3_r = (std::abs(e_sector-e_ring) < s3_cor_diff) ? 1 : 0;
+      flag_s3_r = 1;
     }else if (num_s3_sector_r==1 && num_s3_ring_r==2){
+      flag_s3_r = 1;
+      num_s3_sector_r = 1;
+      num_s3_ring_r = 1;
+
       double e1 = ed->s3_sector_energy[v_s3_sector_r_index[0]];
       double e2 = ed->s3_ring_energy[v_s3_ring_r_index[0]];
       double e3 = ed->s3_ring_energy[v_s3_ring_r_index[1]];
 
-      bool match_e2 = (std::abs(e1-e2) < s3_cor_diff);
-      bool match_e3 = (std::abs(e1-e3) < s3_cor_diff);
-
-      if(match_e2 && !match_e3){
-        flag_s3_r = 1;
+      if(std::abs(e1-e2) < (std::abs(e1-e3))){
         v_s3_ring_r_index.erase(v_s3_ring_r_index.begin()+1);
-      }else if(!match_e2 && match_e3){
-        flag_s3_r = 1;
-        v_s3_ring_r_index.erase(v_s3_ring_r_index.begin());
-      }else if(match_e2 && match_e3){
-        int id1 = ed->s3_ring_id[v_s3_ring_r_index[0]];
-        int id2 = ed->s3_ring_id[v_s3_ring_r_index[1]];
-        if(std::abs(id1-id2) == 1){
-          if(std::abs(e1-(e2+e3)) < s3_cor_diff){
-            flag_s3_r = 1;
-            if(e2>e3){
-              v_s3_ring_r_index.erase(v_s3_ring_r_index.begin()+1);
-            }else{
-              v_s3_ring_r_index.erase(v_s3_ring_r_index.begin());
-            }
-          }else{
-            flag_s3_r = 0;
-            v_s3_ring_r_index.clear();
-          }
-        }else{
-          flag_s3_r = 0;
-          v_s3_ring_r_index.clear();
-        }
       }else{
-        flag_s3_r = 0;
-        v_s3_ring_r_index.clear();
+        v_s3_ring_r_index.erase(v_s3_ring_r_index.begin());
       }
-    }else{ // to do
+    }else if(num_s3_sector_r==2 && num_s3_ring_r==1){
+      flag_s3_r = 1;
+      num_s3_sector_r = 1;
+      num_s3_ring_r = 1;
+
+      double e1 = ed->s3_ring_energy[v_s3_ring_r_index[0]];
+      double e2 = ed->s3_sector_energy[v_s3_sector_r_index[0]];
+      double e3 = ed->s3_sector_energy[v_s3_sector_r_index[1]];
+
+      if(std::abs(e1-e2) < (std::abs(e1-e3))){
+        v_s3_sector_r_index.erase(v_s3_sector_r_index.begin()+1);
+      }else{
+        v_s3_sector_r_index.erase(v_s3_sector_r_index.begin());
+      }
+    }else{
       flag_s3_r = 0;
+      num_s3_sector_r = 0;
+      num_s3_ring_r = 0;
+
       v_s3_sector_r_index.clear();
       v_s3_ring_r_index.clear();
     }
@@ -381,6 +368,8 @@ void doppler::ProcessDoppler(event *ed, TTree *tr)
     //          << " \nnumber_spider_r      " << num_spider_r
     //          << " \nnumber_s3_sector_p   " << num_s3_sector_p
     //          << " \nnumber_s3_sector_r   " << num_s3_sector_r
+    //          << " \nnumber_s3_ring_p     " << num_s3_ring_p
+    //          << " \nnumber_s3_ring_r     " << num_s3_ring_r
     //          << " \nflag_ge size          " << v_ge_index.size()
     //          << " \nflag_spider_p size    " << v_spider_p_index.size()
     //          << " \nflag_spider_r size      " << v_spider_r_index.size()
@@ -390,16 +379,40 @@ void doppler::ProcessDoppler(event *ed, TTree *tr)
     //          << " \nflag_s3_ring_r size     " << v_s3_ring_r_index.size()
     //          << "\n" << std::endl;
 
-    //
-    // std::cout << "\ni " << i 
-    //           << " flag_spider_p " << flag_spider_p 
-    //           << " flag_spider_r " << flag_spider_r 
-    //           << " flag_s3_p " << flag_s3_p 
-    //           << " flag_s3_r " << flag_s3_r << std::endl;
+    // for(int j=0;j<ed->n_ge;j++){
+    //   std::cout << "ge energy " << ed->ge_energy[j] << std::endl;
+    // }
+    // if(flag_spider_p){
+    //   for(int j=0;j<num_spider_p;j++){
+    //     std::cout << "spider p energy " << ed->spider_energy[v_spider_p_index[j]] << std::endl;
+    //   }
+    // }
+    // if(flag_spider_r){
+    //   for(int j=0;j<num_spider_r;j++){
+    //     std::cout << "spider r energy " << ed->spider_energy[v_spider_r_index[j]] << std::endl;
+    //   }
+    // }
+    // if(flag_s3_p){
+    //   for(int j=0;j<num_s3_sector_p;j++){
+    //     std::cout << "s3 sector p energy " << ed->s3_sector_energy[v_s3_sector_p_index[j]] << std::endl;
+    //   }
+    //   for(int j=0;j<num_s3_ring_p;j++){
+    //     std::cout << "s3 ring p energy " << ed->s3_ring_energy[v_s3_ring_p_index[j]] << std::endl;
+    //   }
+    // }
+    // if(flag_s3_r){
+    //   for(int j=0;j<num_s3_sector_r;j++){
+    //     std::cout << "s3 sector r energy " << ed->s3_sector_energy[v_s3_sector_r_index[j]] << std::endl;
+    //   }
+    //   for(int j=0;j<num_s3_ring_p;j++){
+    //     std::cout << "s3 ring r energy " << ed->s3_ring_energy[v_s3_ring_r_index[j]] << std::endl;
+    //   }
+    // }
+    // std::cout << "\n\n";
 
     // spider p
     if(flag_spider_p && !flag_spider_r && !flag_s3_p && !flag_s3_r){
-      int jjj = v_spider_p_index[0];
+      int ii = v_spider_p_index[0];
       
       for(size_t j=0;j<v_ge_index.size();j++){
         int jj = v_ge_index[j];
@@ -411,53 +424,40 @@ void doppler::ProcessDoppler(event *ed, TTree *tr)
         tg = angle->GetGammaTheta(ed->ge_ring_id[jj], ed->ge_sector_id[jj]);
         pg = angle->GetGammaPhi(ed->ge_ring_id[jj], ed->ge_sector_id[jj]);
 
-        tp_p = angle->GetProjectileSpiderTheta(ed->spider_ring_id[jjj], ed->spider_sector_id[jjj]);
-        pp_p = angle->GetProjectileSpiderPhi(ed->spider_ring_id[jjj], ed->spider_sector_id[jjj]);
+        tp_p = angle->GetProjectileSpiderTheta(ed->spider_ring_id[ii], ed->spider_sector_id[ii]);
+        pp_p = angle->GetProjectileSpiderPhi(ed->spider_ring_id[ii], ed->spider_sector_id[ii]);
         cospg_p = angle->ComputeCosThetaParticleGamma(tg, pg, tp_p, pp_p);
-        beta_p = angle->ComputeProjectileBeta(tp_p, 0);
+        beta_p = angle->ComputeProjectileBeta(tp_p, 1000); // 1000fs means stopped
         e_dc_p[j] = ComputeEnergyWithDoppler(ed->ge_energy[jj], beta_p, cospg_p);
-
-        beta_p = angle->ComputeProjectileBeta(tp_p, 10);
-        e_dc_p_10fs[j] = ComputeEnergyWithDoppler(ed->ge_energy[jj], beta_p, cospg_p);
-        beta_p = angle->ComputeProjectileBeta(tp_p, 100);
-        e_dc_p_100fs[j] = ComputeEnergyWithDoppler(ed->ge_energy[jj], beta_p, cospg_p);
-        beta_p = angle->ComputeProjectileBeta(tp_p, 1000);
-        e_dc_p_1000fs[j] = ComputeEnergyWithDoppler(ed->ge_energy[jj], beta_p, cospg_p);
 
         tp_r = angle->GetRecoilTheta(tp_p);
         pp_r = angle->GetRecoilPhi(pp_p);
         cospg_r = angle->ComputeCosThetaParticleGamma(tg, pg, tp_r, pp_r);
-        beta_r = angle->ComputeRecoilBeta(tp_r, 0);
+        beta_r = angle->ComputeRecoilBeta(tp_r, 1000); // 1000fs means stopped
         e_dc_r[j] = ComputeEnergyWithDoppler(ed->ge_energy[jj], beta_r, cospg_r);
 
-        beta_r = angle->ComputeRecoilBeta(tp_r, 10);
-        e_dc_r_10fs[j] = ComputeEnergyWithDoppler(ed->ge_energy[jj], beta_r, cospg_r);
-        beta_r = angle->ComputeRecoilBeta(tp_r, 100);
-        e_dc_r_100fs[j] = ComputeEnergyWithDoppler(ed->ge_energy[jj], beta_r, cospg_r);
-        beta_r = angle->ComputeRecoilBeta(tp_r, 1000);
-        e_dc_r_1000fs[j] = ComputeEnergyWithDoppler(ed->ge_energy[jj], beta_r, cospg_r);
-
-        // std::cout << i << " ge ring " << ring[j] << " sector " << sector[j] << std::endl;   
-        // std::cout << " tg " << tg << " pg " << pg << std::endl;
-        // std::cout << j << " beta_p " << beta_p << " cospg_p " << cospg_p << std::endl;
-        // std::cout << j << " beta_r " << beta_p << " cospg_r " << cospg_p << std::endl;
-        // std::cout << ed->ge_ring_id[j] << " " << ed->ge_sector_id[j] << " " << ed->ge_energy[j] << std::endl;
+        // std::cout << "ge ring " << rg[j] << " sector " << sg[j] << std::endl;   
+        // std::cout << "ge ring " << ed->ge_ring_id[j] << " sector " << ed->ge_sector_id[j] << " energy " << ed->ge_energy[j] << " keV " << std::endl;
+        // std::cout << "tg " << tg << " pg " << pg << std::endl;
+        // std::cout << "beta_p " << beta_p << " cospg_p " << cospg_p << std::endl;
+        // std::cout << "beta_r " << beta_r << " cospg_r " << cospg_r << std::endl;
+        // std::cout << "e_raw " << e_raw[j] << std::endl;
         // std::cout << "e_dc_p " << e_dc_p[j] << std::endl;
         // std::cout << "e_dc_r " << e_dc_r[j] << std::endl;
       }
 
       hits = v_ge_index.size();
-      rp = ed->spider_ring_id[jjj];
-      sp = ed->spider_sector_id[jjj];
+      rp = ed->spider_ring_id[ii];
+      sp = ed->spider_sector_id[ii];
 
       if(hits>0) tr->Fill();
       Clear();
     }
 
     // s3 p
-    if(!flag_spider_p && !flag_spider_r && flag_s3_p){
-      int jjj_sector = v_s3_sector_p_index[0];
-      int jjj_ring = v_s3_ring_p_index[0];
+    if(!flag_spider_p && !flag_spider_r && flag_s3_p && !flag_s3_r){
+      int ii_sector = v_s3_sector_p_index[0];
+      int ii_ring = v_s3_ring_p_index[0];
 
       for(size_t j=0;j<v_ge_index.size();j++){
         int jj = v_ge_index[j];
@@ -469,49 +469,37 @@ void doppler::ProcessDoppler(event *ed, TTree *tr)
         tg = angle->GetGammaTheta(ed->ge_ring_id[jj], ed->ge_sector_id[jj]);
         pg = angle->GetGammaPhi(ed->ge_ring_id[jj], ed->ge_sector_id[jj]);
 
-        tp_p = angle->GetProjectileS3Theta(ed->s3_ring_id[jjj_ring]);
-        pp_p = angle->GetProjectileS3Phi(ed->spider_sector_id[jjj_sector]);
+        tp_p = angle->GetProjectileS3Theta(ed->s3_ring_id[ii_ring]);
+        pp_p = angle->GetProjectileS3Phi(ed->spider_sector_id[ii_sector]);
         cospg_p = angle->ComputeCosThetaParticleGamma(tg, pg, tp_p, pp_p);
-        beta_p = angle->ComputeProjectileBeta(tp_p, 0);
+        beta_p = angle->ComputeProjectileBeta(tp_p, 1000); // 1000fs means stopped
         e_dc_p[j] = ComputeEnergyWithDoppler(ed->ge_energy[jj], beta_p, cospg_p);
-
-        beta_p = angle->ComputeProjectileBeta(tp_p, 10);
-        e_dc_p_10fs[j] = ComputeEnergyWithDoppler(ed->ge_energy[jj], beta_p, cospg_p);
-        beta_p = angle->ComputeProjectileBeta(tp_p, 100);
-        e_dc_p_100fs[j] = ComputeEnergyWithDoppler(ed->ge_energy[jj], beta_p, cospg_p);
-        beta_p = angle->ComputeProjectileBeta(tp_p, 1000);
-        e_dc_p_1000fs[j] = ComputeEnergyWithDoppler(ed->ge_energy[jj], beta_p, cospg_p);
 
         tp_r = angle->GetRecoilTheta(tp_p);
         pp_r = angle->GetRecoilPhi(pp_p);
         cospg_r = angle->ComputeCosThetaParticleGamma(tg, pg, tp_r, pp_r);
-        beta_r = angle->ComputeRecoilBeta(tp_r, 0);
+        beta_r = angle->ComputeRecoilBeta(tp_r, 1000); // 1000fs means stopped
         e_dc_r[j] = ComputeEnergyWithDoppler(ed->ge_energy[jj], beta_r, cospg_r);
 
-        beta_r = angle->ComputeRecoilBeta(tp_r, 10);
-        e_dc_r_10fs[j] = ComputeEnergyWithDoppler(ed->ge_energy[jj], beta_r, cospg_r);
-        beta_r = angle->ComputeRecoilBeta(tp_r, 100);
-        e_dc_r_100fs[j] = ComputeEnergyWithDoppler(ed->ge_energy[jj], beta_r, cospg_r);
-        beta_r = angle->ComputeRecoilBeta(tp_r, 1000);
-        e_dc_r_1000fs[j] = ComputeEnergyWithDoppler(ed->ge_energy[jj], beta_r, cospg_r);
-
-        // std::cout << i << " ge ring " << ring[j] << " sector " << sector[j] << std::endl;   
-        // std::cout << " tg " << tg << " pg " << pg << std::endl;
-        // std::cout << j << " beta_p " << beta_p << " cospg_p " << cospg_p << std::endl;
-        // std::cout << j << " beta_r " << beta_p << " cospg_r " << cospg_p << std::endl;
-        // std::cout << ed->ge_ring_id[j] << " " << ed->ge_sector_id[j] << " " << ed->ge_energy[j] << std::endl;
+        // std::cout << "ge ring " << rg[j] << " sector " << sg[j] << std::endl;   
+        // std::cout << "ge ring " << ed->ge_ring_id[j] << " sector " << ed->ge_sector_id[j] << " energy " << ed->ge_energy[j] << " keV " << std::endl;
+        // std::cout << "tg " << tg << " pg " << pg << std::endl;
+        // std::cout << "beta_p " << beta_p << " cospg_p " << cospg_p << std::endl;
+        // std::cout << "beta_r " << beta_r << " cospg_r " << cospg_r << std::endl;
+        // std::cout << "e_raw " << e_raw[j] << std::endl;
         // std::cout << "e_dc_p " << e_dc_p[j] << std::endl;
         // std::cout << "e_dc_r " << e_dc_r[j] << std::endl;
       }
 
       hits = v_ge_index.size();
-      rp = ed->s3_ring_id[jjj_ring];
-      sp = ed->s3_sector_id[jjj_ring];
+      rp = ed->s3_ring_id[ii_ring];
+      sp = ed->s3_sector_id[ii_ring];
 
       if(hits>0) tr->Fill();
       Clear();
     }
 
+    // std::cout << "\nooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo\n";
   }
     
   std::cout << std::endl;
@@ -760,11 +748,4 @@ void doppler::Clear()
   memset(e_raw, 0, sizeof(e_raw));
   memset(e_dc_p, 0, sizeof(e_dc_p));
   memset(e_dc_r, 0, sizeof(e_dc_r));
-
-  memset(e_dc_p_10fs, 0, sizeof(e_dc_p_10fs));
-  memset(e_dc_r_10fs, 0, sizeof(e_dc_r_10fs));
-  memset(e_dc_p_100fs, 0, sizeof(e_dc_p_100fs));
-  memset(e_dc_r_100fs, 0, sizeof(e_dc_r_100fs));
-  memset(e_dc_p_1000fs, 0, sizeof(e_dc_p_1000fs));
-  memset(e_dc_r_1000fs, 0, sizeof(e_dc_r_1000fs));
 }

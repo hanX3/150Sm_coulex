@@ -2094,7 +2094,7 @@ void draw_sample(string str="")
         h3_grs_s3r[k]->GetYaxis()->SetTitle("counts");
         h3_grs_s3r[k]->Draw();
       }
-      h3_grs_s3r[k]->SetLineColor(colors[k%24]);
+      h3_grs_s3r[k]->SetLineColor(colors[kk]);
       h3_grs_s3r[k]->Draw("same");
 
       leg4->AddEntry(h3_grs_s3r[k], h3_grs_s3r[k]->GetName());

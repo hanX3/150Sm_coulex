@@ -1,8 +1,8 @@
 #!/usr/bin/bash
 
-max_jobs=120
+max_jobs=160
 
-l_phi_offset=(0 30 60 90 120 150 180 210 240 270 300 330)
+l_phi_offset=(0 5 10 330 335 340 345 350 355)
 
 while read run; do
   for phi_offset in "${l_phi_offset[@]}"; do

@@ -59,17 +59,38 @@ void d2hist(int run, int phi_offset)
       tr->Project(h1.GetName(), str_e.c_str(), "flag_spider_p && !flag_s3_p");
       h1.Write();
 
-      // ge ring, spider all
-      TH1D h2(Form("%s_%s_ge_ring3_spider_all",(*it).c_str(),str_e.c_str()), "", 4096, 0, 4096);
-      tr->Project(h2.GetName(), str_e.c_str(), "flag_spider_p && !flag_s3_p && rg==3");
-      h2.Write();
+      // ge single, spider all
+      TH1D h32(Form("%s_%s_ge_ring3_sector2_spider_all",(*it).c_str(),str_e.c_str()), "", 4096, 0, 4096);
+      tr->Project(h32.GetName(), str_e.c_str(), "flag_spider_p && !flag_s3_p && rg==3 && sg==2");
+      h32.Write();
 
       // ge single, spider all
-      TH1D h3(Form("%s_%s_ge_ring3_sector2_spider_all",(*it).c_str(),str_e.c_str()), "", 4096, 0, 4096);
-      tr->Project(h3.GetName(), str_e.c_str(), "flag_spider_p && !flag_s3_p && rg==3 && sg==2");
-      h3.Write();
+      TH1D h41(Form("%s_%s_ge_ring4_sector1_spider_all",(*it).c_str(),str_e.c_str()), "", 4096, 0, 4096);
+      tr->Project(h41.GetName(), str_e.c_str(), "flag_spider_p && !flag_s3_p && rg==4 && sg==1");
+      h41.Write();
+      
+      // ge single, spider all
+      TH1D h42(Form("%s_%s_ge_ring4_sector2_spider_all",(*it).c_str(),str_e.c_str()), "", 4096, 0, 4096);
+      tr->Project(h42.GetName(), str_e.c_str(), "flag_spider_p && !flag_s3_p && rg==4 && sg==2");
+      h42.Write();
+
+      // ge single, spider all
+      TH1D h43(Form("%s_%s_ge_ring4_sector3_spider_all",(*it).c_str(),str_e.c_str()), "", 4096, 0, 4096);
+      tr->Project(h43.GetName(), str_e.c_str(), "flag_spider_p && !flag_s3_p && rg==4 && sg==3");
+      h43.Write();
+
+      // ge single, spider all
+      TH1D h52(Form("%s_%s_ge_ring5_sector2_spider_all",(*it).c_str(),str_e.c_str()), "", 4096, 0, 4096);
+      tr->Project(h52.GetName(), str_e.c_str(), "flag_spider_p && !flag_s3_p && rg==5 && sg==2");
+      h52.Write();
+
+      // ge single, spider all
+      TH1D h53(Form("%s_%s_ge_ring5_sector3_spider_all",(*it).c_str(),str_e.c_str()), "", 4096, 0, 4096);
+      tr->Project(h53.GetName(), str_e.c_str(), "flag_spider_p && !flag_s3_p && rg==5 && sg==3");
+      h53.Write();
     }
 
+    //
     for(int i=1;i<=8;i++){
       for(auto &str_e : v_str_e){
         // ge all, spider ring
@@ -77,18 +98,39 @@ void d2hist(int run, int phi_offset)
         tr->Project(h1.GetName(), str_e.c_str(), Form("flag_spider_p && !flag_s3_p && rp==%d",i));
         h1.Write();
 
-        // ge ring, spider ring
-        TH1D h2(Form("%s_%s_ge_ring3_spider_ring%d",(*it).c_str(),str_e.c_str(),i), "", 4096, 0, 4096);
-        tr->Project(h2.GetName(), str_e.c_str(), Form("flag_spider_p && !flag_s3_p && rp==%d && rg==3",i));
-        h2.Write();
+        // ge single, spider ring
+        TH1D h32(Form("%s_%s_ge_ring3_sector2_spider_ring%d",(*it).c_str(),str_e.c_str(),i), "", 4096, 0, 4096);
+        tr->Project(h32.GetName(), str_e.c_str(), Form("flag_spider_p && !flag_s3_p && rp==%d && rg==3 && sg==2",i));
+        h32.Write();
 
         // ge single, spider ring
-        TH1D h3(Form("%s_%s_ge_ring3_sector2_spider_ring%d",(*it).c_str(),str_e.c_str(),i), "", 4096, 0, 4096);
-        tr->Project(h3.GetName(), str_e.c_str(), Form("flag_spider_p && !flag_s3_p && rp==%d && rg==3 && sg==2",i));
-        h3.Write();
+        TH1D h41(Form("%s_%s_ge_ring4_sector1_spider_ring%d",(*it).c_str(),str_e.c_str(),i), "", 4096, 0, 4096);
+        tr->Project(h41.GetName(), str_e.c_str(), Form("flag_spider_p && !flag_s3_p && rp==%d && rg==4 && sg==1",i));
+        h41.Write();
+
+        // ge single, spider ring
+        TH1D h42(Form("%s_%s_ge_ring4_sector2_spider_ring%d",(*it).c_str(),str_e.c_str(),i), "", 4096, 0, 4096);
+        tr->Project(h42.GetName(), str_e.c_str(), Form("flag_spider_p && !flag_s3_p && rp==%d && rg==4 && sg==2",i));
+        h42.Write();
+
+        // ge single, spider ring
+        TH1D h43(Form("%s_%s_ge_ring4_sector3_spider_ring%d",(*it).c_str(),str_e.c_str(),i), "", 4096, 0, 4096);
+        tr->Project(h43.GetName(), str_e.c_str(), Form("flag_spider_p && !flag_s3_p && rp==%d && rg==4 && sg==2",i));
+        h43.Write();
+
+        // ge single, spider ring
+        TH1D h52(Form("%s_%s_ge_ring5_sector2_spider_ring%d",(*it).c_str(),str_e.c_str(),i), "", 4096, 0, 4096);
+        tr->Project(h52.GetName(), str_e.c_str(), Form("flag_spider_p && !flag_s3_p && rp==%d && rg==5 && sg==2",i));
+        h52.Write();
+
+        // ge single, spider ring
+        TH1D h53(Form("%s_%s_ge_ring5_sector3_spider_ring%d",(*it).c_str(),str_e.c_str(),i), "", 4096, 0, 4096);
+        tr->Project(h53.GetName(), str_e.c_str(), Form("flag_spider_p && !flag_s3_p && rp==%d && rg==5 && sg==3",i));
+        h53.Write();
       }
     }
 
+    //
     for(int i=1;i<=12;i++){
       for(auto &str_e : v_str_e){
         // ge all, spider sector
@@ -96,15 +138,35 @@ void d2hist(int run, int phi_offset)
         tr->Project(h1.GetName(), str_e.c_str(), Form("flag_spider_p && !flag_s3_p && sp==%d",i));
         h1.Write();
 
-        // ge ring, spider sector
-        TH1D h2(Form("%s_%s_ge_ring3_spider_sector%d",(*it).c_str(),str_e.c_str(),i), "", 4096, 0, 4096);
-        tr->Project(h2.GetName(), str_e.c_str(), Form("flag_spider_p && !flag_s3_p && sp==%d && rg==3",i));
-        h2.Write();
+        // ge single, spider sector
+        TH1D h32(Form("%s_%s_ge_ring3_sector2_spider_sector%d",(*it).c_str(),str_e.c_str(),i), "", 4096, 0, 4096);
+        tr->Project(h32.GetName(), str_e.c_str(), Form("flag_spider_p && !flag_s3_p && sp==%d && rg==3 && sg==2",i));
+        h32.Write();
 
         // ge single, spider sector
-        TH1D h3(Form("%s_%s_ge_ring3_sector2_spider_sector%d",(*it).c_str(),str_e.c_str(),i), "", 4096, 0, 4096);
-        tr->Project(h3.GetName(), str_e.c_str(), Form("flag_spider_p && !flag_s3_p && sp==%d && rg==3 && sg==2",i));
-        h3.Write();
+        TH1D h41(Form("%s_%s_ge_ring4_sector1_spider_sector%d",(*it).c_str(),str_e.c_str(),i), "", 4096, 0, 4096);
+        tr->Project(h41.GetName(), str_e.c_str(), Form("flag_spider_p && !flag_s3_p && sp==%d && rg==4 && sg==1",i));
+        h41.Write();
+
+        // ge single, spider sector
+        TH1D h42(Form("%s_%s_ge_ring4_sector2_spider_sector%d",(*it).c_str(),str_e.c_str(),i), "", 4096, 0, 4096);
+        tr->Project(h42.GetName(), str_e.c_str(), Form("flag_spider_p && !flag_s3_p && sp==%d && rg==4 && sg==2",i));
+        h42.Write();
+
+        // ge single, spider sector
+        TH1D h43(Form("%s_%s_ge_ring4_sector3_spider_sector%d",(*it).c_str(),str_e.c_str(),i), "", 4096, 0, 4096);
+        tr->Project(h43.GetName(), str_e.c_str(), Form("flag_spider_p && !flag_s3_p && sp==%d && rg==4 && sg==2",i));
+        h43.Write();
+
+        // ge single, spider sector
+        TH1D h52(Form("%s_%s_ge_ring5_sector2_spider_sector%d",(*it).c_str(),str_e.c_str(),i), "", 4096, 0, 4096);
+        tr->Project(h52.GetName(), str_e.c_str(), Form("flag_spider_p && !flag_s3_p && sp==%d && rg==5 && sg==2",i));
+        h52.Write();
+
+        // ge single, spider sector
+        TH1D h53(Form("%s_%s_ge_ring5_sector3_spider_sector%d",(*it).c_str(),str_e.c_str(),i), "", 4096, 0, 4096);
+        tr->Project(h53.GetName(), str_e.c_str(), Form("flag_spider_p && !flag_s3_p && sp==%d && rg==5 && sg==3",i));
+        h53.Write();
       }
     }
   }

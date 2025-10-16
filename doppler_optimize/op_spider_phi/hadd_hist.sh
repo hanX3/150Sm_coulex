@@ -24,6 +24,7 @@ hadd ./try/$(printf "%03d" "${1}")deg/rootfile/data0680_0718_doppler_200ns_jump_
 rm -f ./try/$(printf "%03d" "${1}")deg/rootfile/data0472_0718_doppler_200ns_jump_300ns_hist.root
 hadd ./try/$(printf "%03d" "${1}")deg/rootfile/data0472_0718_doppler_200ns_jump_300ns_hist.root ./try/$(printf "%03d" "${1}")deg/rootfile/data0472_0605_doppler_200ns_jump_300ns_hist.root ./try/$(printf "%03d" "${1}")deg/rootfile/data0616_0674_doppler_200ns_jump_300ns_hist.root ./try/$(printf "%03d" "${1}")deg/rootfile/data0680_0718_doppler_200ns_jump_300ns_hist.root
 
+#
 rm -f ./try/$(printf "%03d" "${1}")deg/rootfile/data0472_0549_doppler_200ns_jump_300ns_hist.root
 rm -f ./try/$(printf "%03d" "${1}")deg/rootfile/data0550_0605_doppler_200ns_jump_300ns_hist.root
 

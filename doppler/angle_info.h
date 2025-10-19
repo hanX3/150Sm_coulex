@@ -33,6 +33,8 @@ public:
   void PrintEinEoutInfo();
   void PrintThetaP2RInfo();
 
+  void PrintBetaInfo();
+
 public:
   double GetGammaTheta(int ring, int sector) { return map_ge_angle[100*ring+sector].first; }
   double GetGammaPhi(int ring, int sector) { return map_ge_angle[100*ring+sector].second; }

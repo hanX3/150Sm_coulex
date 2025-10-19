@@ -20,6 +20,8 @@ angle_info::angle_info()
 
   PrintEinEoutInfo();
   PrintThetaP2RInfo();
+
+  PrintBetaInfo();
 }
 
 //
@@ -236,6 +238,22 @@ void angle_info::PrintThetaP2RInfo()
 }
 
 //
+void angle_info::PrintBetaInfo()
+{
+  std::cout << "print projectile beta info ..." << std::endl;
+
+  //
+  std::map<std::string, double>::iterator it = map_theta_p2r.begin();
+  for(;it!=map_theta_p2r.end();it++){
+    std::cout << "p ==> " << it->first << "deg, beta " << ComputeProjectileBeta(std::stod(it->first), 1000.) << std::endl;
+    std::cout << "r ==> " << it->second << "deg, beta " << ComputeRecoilBeta(it->second, 1000.) << std::endl;
+    std::cout << std::endl;
+  }
+
+  std::cout << std::endl;
+}
+
+//
 double angle_info::GetRecoilTheta(double theta_p)
 {
   char c_theta_p[32];
@@ -248,7 +266,7 @@ double angle_info::GetRecoilTheta(double theta_p)
 //
 double angle_info::GetRecoilPhi(double phi_p)
 { 
-  return 360-phi_p; 
+  return phi_p+180; 
 }
 
 // dt unit fs

@@ -482,7 +482,7 @@ void doppler::ProcessDoppler(event *ed, TTree *tr)
         tp_r = angle->GetRecoilTheta(tp_p);
         pp_r = angle->GetRecoilPhi(pp_p);
         cospg_r = angle->ComputeCosThetaParticleGamma(tg, pg, tp_r, pp_r);
-        beta_r = angle->ComputeRecoilBeta(tp_r, 10); // 1000fs means stopped
+        beta_r = angle->ComputeRecoilBeta(tp_r, 1000); // 1000fs means stopped
         e_dc_r[j] = ComputeEnergyWithDoppler(ed->ge_energy[jj], beta_r, cospg_r);
 
         // cout

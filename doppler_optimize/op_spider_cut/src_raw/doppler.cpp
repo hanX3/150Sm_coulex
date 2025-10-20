@@ -569,7 +569,7 @@ bool doppler::ReadCutInfo()
 
     key = 100*ring + sector;
     // map_spider_cut_p[key] = std::make_pair(min, max);
-    map_spider_cut_p[key] = std::make_pair(min, CUTSPIDERPMIN);
+    map_spider_cut_p[key] = std::make_pair(CUTSPIDERPMIN, max);
   }
   fi_spider_cut_p.close();
 

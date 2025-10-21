@@ -216,7 +216,7 @@ void compare_draw()
       leg_gr5_s3r[i]->AddEntry(v_h_gr5_s3r[i*8+r], v_h_gr5_s3r[i*8+r]->GetName());
       v_h_gr5_s3r[i*8+r]->SetLineColor(colors[r]);
       v_h_gr5_s3r[i*8+r]->SetLineWidth(2);
-      v_h_gr5_s3r[i*8+r]->GetXaxis()->SetRangeUser(300,500);
+      v_h_gr5_s3r[i*8+r]->GetXaxis()->SetRangeUser(300,900);
       if(r==0){
         v_h_gr5_s3r[i*8+r]->SetTitle(Form("ge ring5, s3 differnet ring, projectile > %s keV",v_filename[i].substr(4,6).c_str()));
         v_h_gr5_s3r[i*8+r]->GetXaxis()->SetTitle("energy [keV]");

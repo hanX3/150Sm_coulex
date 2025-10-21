@@ -12,17 +12,17 @@ void compare_draw()
   };
 
   vector<string> v_filename = {
-    "try/000deg/rootfile/data0616_0674_doppler_200ns_jump_300ns_hist.root",
-    "try/002deg/rootfile/data0616_0674_doppler_200ns_jump_300ns_hist.root",
-    "try/004deg/rootfile/data0616_0674_doppler_200ns_jump_300ns_hist.root",
-    "try/006deg/rootfile/data0616_0674_doppler_200ns_jump_300ns_hist.root",
-    "try/008deg/rootfile/data0616_0674_doppler_200ns_jump_300ns_hist.root",
-    "try/010deg/rootfile/data0616_0674_doppler_200ns_jump_300ns_hist.root",
-    "try/350deg/rootfile/data0616_0674_doppler_200ns_jump_300ns_hist.root",
-    "try/352deg/rootfile/data0616_0674_doppler_200ns_jump_300ns_hist.root",
-    "try/354deg/rootfile/data0616_0674_doppler_200ns_jump_300ns_hist.root",
-    "try/356deg/rootfile/data0616_0674_doppler_200ns_jump_300ns_hist.root",
-    "try/358deg/rootfile/data0616_0674_doppler_200ns_jump_300ns_hist.root"
+    "try/000deg/rootfile/data0680_0718_doppler_200ns_jump_300ns_hist.root",
+    "try/002deg/rootfile/data0680_0718_doppler_200ns_jump_300ns_hist.root",
+    "try/004deg/rootfile/data0680_0718_doppler_200ns_jump_300ns_hist.root",
+    "try/006deg/rootfile/data0680_0718_doppler_200ns_jump_300ns_hist.root",
+    "try/008deg/rootfile/data0680_0718_doppler_200ns_jump_300ns_hist.root",
+    "try/010deg/rootfile/data0680_0718_doppler_200ns_jump_300ns_hist.root",
+    "try/350deg/rootfile/data0680_0718_doppler_200ns_jump_300ns_hist.root",
+    "try/352deg/rootfile/data0680_0718_doppler_200ns_jump_300ns_hist.root",
+    "try/354deg/rootfile/data0680_0718_doppler_200ns_jump_300ns_hist.root",
+    "try/356deg/rootfile/data0680_0718_doppler_200ns_jump_300ns_hist.root",
+    "try/358deg/rootfile/data0680_0718_doppler_200ns_jump_300ns_hist.root"
   };
 
   vector<TFile*> v_fi;

@@ -9,12 +9,12 @@
 #include <map>
 
 //
-void d2hist(int run, int phi_offset)
+void d2hist(int run, int theta_offset)
 {
   TRandom3 *rndm = new TRandom3((Long64_t)time(0)); 
 
-  TFile *fi = TFile::Open(TString::Format("./try/%03ddeg/rootfile/data%04d_doppler_200ns_jump_300ns.root",phi_offset,run));
-  TFile *fo = new TFile(TString::Format("./try/%03ddeg/rootfile/data%04d_doppler_200ns_jump_300ns_hist.root",phi_offset,run), "recreate");
+  TFile *fi = TFile::Open(TString::Format("./try/%03ddeg/rootfile/data%04d_doppler_200ns_jump_300ns.root",theta_offset,run));
+  TFile *fo = new TFile(TString::Format("./try/%03ddeg/rootfile/data%04d_doppler_200ns_jump_300ns_hist.root",theta_offset,run), "recreate");
 
   if(fi->IsZombie()){
     std::cout << "open file run " << run << " error!" << std::endl;

@@ -1,11 +1,12 @@
-#include "set.h"
+#include "../set.h"
 
 //
-void tree2th2(string file_name)
+// example str = "data0472_0605_doppler_100ns_jump_300ns"
+void d2th2(string str="")
 {
   TRandom3 *rndm = new TRandom3((Long64_t)time(0)); 
 
-  TFile *fi = TFile::Open(TString::Format("%s.root",file_name.c_str()));
+  TFile *fi = TFile::Open(Format("../../rottfile/%s.root",str.c_str()));
   if(fi->IsZombie()){
     std::cout << "open file run error!" << std::endl;
 
@@ -18,12 +19,12 @@ void tree2th2(string file_name)
   Int_t hits_event;
   Double_t e_dc_r_event[GENUM];
   tr_event->SetBranchAddress("hits", &hits_event);
-  tr_event->SetBranchAddress("e_dc_r_1000fs", e_dc_r_event);
+  tr_event->SetBranchAddress("e_dc_r", e_dc_r_event);
 
   Int_t hits_bg;
   Double_t e_dc_r_bg[GENUM];
   tr_bg->SetBranchAddress("hits", &hits_bg);
-  tr_bg->SetBranchAddress("e_dc_r_1000fs", e_dc_r_bg);
+  tr_bg->SetBranchAddress("e_dc_r", e_dc_r_bg);
 
   TH2I *hh_event = new TH2I("hh_event","",4096,0,4096,4096,0,4096);
   TH2I *hh_bg = new TH2I("hh_bg","",4096,0,4096,4096,0,4096);

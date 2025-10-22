@@ -196,7 +196,11 @@ bool angle_info::InitEinEoutInfo()
     theta_r = std::round(theta_r * 100.0) / 100.0;
     std::sprintf(c_theta_p, "%.2f", theta_p);
     std::sprintf(c_theta_r, "%.2f", theta_r);
-    map_theta_ein_eout_r[c_theta_r] = std::make_pair(e_in, e_out);
+    if(theta_p<90){
+      map_theta_ein_eout_r[c_theta_r] = std::make_pair(e_in, e_out*0.5);
+    }else{
+      map_theta_ein_eout_r[c_theta_r] = std::make_pair(e_in, e_out);
+    }
     map_theta_p2r[c_theta_p] = theta_r;
   }
   fi_r.close();

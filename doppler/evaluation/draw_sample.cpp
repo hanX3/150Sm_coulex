@@ -10,7 +10,7 @@ void draw_sample(string str="")
   double x_min = 300;
   double x_max = 800;
   int r, s;
-  int k = 0, kk = 0;;
+  int k = 0, kk = 0;
 
   int colors[24] = {
     TColor::GetColor("#E41A1C"), TColor::GetColor("#377EB8"),

@@ -302,4 +302,23 @@ void draw_origin(string str="")
   leg2->Draw("same");
   c_gr5_s3r->SaveAs("./fig/c_gr5_s3r.png");
 
+  ///
+  ///
+  /// orgin
+  ofstream fo_ga_spr("ga_spr.txt");
+  fo_ga_spr << "sp1  y  sp2  y  sp3  y  sp4  y  sp5  y  sp6  y  sp7  y  sp8  y  " << endl;
+  // h_ga_spr
+  k = 0;
+  for(int i=1;i<=4096;i++){
+    k = 0;
+    for(int j=1;j<=8;j++){
+      fo_ga_spr << i << "  " << h_ga_spr[k]->GetBinContent(i) << " ";
+      k++;
+    }
+
+    fo_ga_spr << endl;
+  }
+  fo_ga_spr.close();
+
+
 }

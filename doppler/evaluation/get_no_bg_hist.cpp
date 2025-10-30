@@ -47,6 +47,7 @@ void get_no_bg_hist(string str="")
 
     h1_ga_spr[k]->Add(hh1_ga_spr[k], -1);
     h1_ga_spr[k]->Write();
+    hh1_ga_spr[k]->Write();
 
     k++;
   }
@@ -62,6 +63,7 @@ void get_no_bg_hist(string str="")
 
       h1_gr_spr[k]->Add(hh1_gr_spr[k], -1);
       h1_gr_spr[k]->Write();
+      hh1_gr_spr[k]->Write();
       
       k++;
     }
@@ -80,6 +82,7 @@ void get_no_bg_hist(string str="")
 
     h1_ga_s3r[k]->Add(hh1_ga_s3r[k], -1);
     h1_ga_s3r[k]->Write();
+    hh1_ga_s3r[k]->Write();
 
     k++;
   }
@@ -95,6 +98,77 @@ void get_no_bg_hist(string str="")
 
       h1_gr_s3r[k]->Add(hh1_gr_s3r[k], -1);
       h1_gr_s3r[k]->Write();
+      hh1_gr_s3r[k]->Write();
+      
+      k++;
+    }
+  }
+
+  ////
+  ////
+  ////
+  // ge all spider ring
+  TH1D *h2_ga_spr[8];
+  TH1D *hh2_ga_spr[8];
+  k = 0;
+  for(int i=1;i<=8;i++){
+    h2_ga_spr[k] = (TH1D*)fi->Get(Form("event_e_raw_ge_all_spider_ring%d",i));
+    hh2_ga_spr[k] = (TH1D*)fi->Get(Form("bg_e_raw_ge_all_spider_ring%d",i));
+
+    h2_ga_spr[k]->Add(hh2_ga_spr[k], -1);
+    h2_ga_spr[k]->Write();
+    hh2_ga_spr[k]->Write();
+
+    k++;
+  }
+
+  // ge ring spider ring
+  TH1D *h2_gr_spr[3*8];
+  TH1D *hh2_gr_spr[3*8];
+  k = 0;
+  for(int i=3;i<=5;i++){
+    for(int j=1;j<=8;j++){//k=0-7 ge_ring=3
+      h2_gr_spr[k] = (TH1D*)fi->Get(Form("event_e_raw_ge_ring%d_spider_ring%d",i,j));
+      hh2_gr_spr[k] = (TH1D*)fi->Get(Form("bg_e_raw_ge_ring%d_spider_ring%d",i,j));
+
+      h2_gr_spr[k]->Add(hh2_gr_spr[k], -1);
+      h2_gr_spr[k]->Write();
+      hh2_gr_spr[k]->Write();
+      
+      k++;
+    }
+  }
+
+  ////
+  ////
+  ////
+  // ge all s3 ring
+  TH1D *h2_ga_s3r[24];
+  TH1D *hh2_ga_s3r[24];
+  k = 0;
+  for(int i=1;i<=24;i++){
+    h2_ga_s3r[k] = (TH1D*)fi->Get(Form("event_e_raw_ge_all_s3_ring%d",i));
+    hh2_ga_s3r[k] = (TH1D*)fi->Get(Form("bg_e_raw_ge_all_s3_ring%d",i));
+
+    h2_ga_s3r[k]->Add(hh2_ga_s3r[k], -1);
+    h2_ga_s3r[k]->Write();
+    hh2_ga_s3r[k]->Write();
+
+    k++;
+  }
+
+  // ge ring s3 ring
+  TH1D *h2_gr_s3r[3*24];
+  TH1D *hh2_gr_s3r[3*24];
+  k = 0;
+  for(int i=3;i<=5;i++){
+    for(int j=1;j<=24;j++){//k=0-7 ge_ring=3
+      h2_gr_s3r[k] = (TH1D*)fi->Get(Form("event_e_raw_ge_ring%d_s3_ring%d",i,j));
+      hh2_gr_s3r[k] = (TH1D*)fi->Get(Form("bg_e_raw_ge_ring%d_s3_ring%d",i,j));
+
+      h2_gr_s3r[k]->Add(hh2_gr_s3r[k], -1);
+      h2_gr_s3r[k]->Write();
+      hh2_gr_s3r[k]->Write();
       
       k++;
     }

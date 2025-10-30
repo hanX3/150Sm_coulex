@@ -28,6 +28,7 @@ void d2hist_simple(int run, int win, int jump)
 
   std::vector<std::string> v_str_name = {"event", "bg"};
   std::vector<std::string> v_str_e = {
+    "e_raw",
     "e_dc_r"
   };
 

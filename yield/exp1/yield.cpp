@@ -1,10 +1,11 @@
 //
 
 std::map<std::pair<int,int>, std::vector<double>> m_r_e_info;
-TFile *fi = TFile::Open("../../rootfile/doppler_100ns_p1_hist.root");
+TFile *fi = TFile::Open("../../rootfile/doppler_100ns_p1_no_bg_hist.root");
+TFile *fi_bg = TFile::Open("../../rootfile/doppler_100ns_p1_hist.root");
 
 bool init_pars(string str="");
-void fit_peak(TH1D *h_event, TH1D *h_bg, int ring, double e);
+void fit_peak(ofstream &f, TH1D *h_event, TH1D *h_bg, int ring, double e);
 
 //ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 //
@@ -45,32 +46,42 @@ void yield()
     // "ge_ring4_spider"
   };
 
+  vector<TH1D*> v_h_event, v_h_bg;
+  int k = 0;
+
   // ge all, spider
   for(auto &prefix:v_hist_prefix){
     if(!init_pars(prefix)) return;
     cout << "m_r_e_info " << m_r_e_info.size() << endl;
 
+    ofstream fo(Form("./result/%s.yld",prefix.c_str()));
+    fo << "ring_id   e   area   error" << endl;
+
     for(auto &[key,val]:m_r_e_info){
       // if(!(key.first==7 && key.second==505)) continue;
 
-      TH1D *hh_event = (TH1D*)fi->Get(Form("event_e_dc_r_%s_ring%d",prefix.c_str(),key.first));
-      TH1D *hh_bg = (TH1D*)fi->Get(Form("bg_e_dc_r_%s_ring%d",prefix.c_str(),key.first));
-      hh_event->Add(hh_bg, -1);
+      v_h_event.push_back((TH1D*)fi->Get(Form("event_e_dc_r_%s_ring%d",prefix.c_str(),key.first)));
+      v_h_bg.push_back((TH1D*)fi_bg->Get(Form("bg_e_dc_r_%s_ring%d",prefix.c_str(),key.first)));
 
-      fit_peak(hh_event, hh_bg, key.first, val[0]);
+      fit_peak(fo, v_h_event[k], v_h_bg[k], key.first, val[0]);
 
-      // delete hh_event;
-      // delete hh_bg;
+      k++;
     }
+
+    fo.close();
   }
 
-  //
+  v_h_event.clear();
+  v_h_bg.clear();
+
+  fi->Close();
+  fi_bg->Close();
 }
 
 //
-void fit_peak(TH1D *h_event, TH1D *h_bg, int ring, double e)
+void fit_peak(ofstream &f, TH1D *h_event, TH1D *h_bg, int ring, double e)
 {
-  // gROOT->SetBatch(1);
+  gROOT->SetBatch(1);
   gStyle->SetOptStat(0);
   gStyle->SetOptFit(11);
 
@@ -130,13 +141,24 @@ void fit_peak(TH1D *h_event, TH1D *h_bg, int ring, double e)
   TF1 *gpeakexregion_tf = new TF1("gpeakexregion_tf", gpeakexregion, x_min, x_max, 14);
   gpeakexregion_tf->SetParameters(par);
 
+  gpeakexregion_tf->SetParName(0, "Energy");
+  gpeakexregion_tf->SetParName(1, "#Gamma");
+  gpeakexregion_tf->SetParName(2, "#delta");
+  gpeakexregion_tf->SetParName(3, "Left_skew A");
+  gpeakexregion_tf->SetParName(4, "Left_skew #beta");
+  gpeakexregion_tf->SetParName(5, "Right_skew R");
+  gpeakexregion_tf->SetParName(6, "Right_skew #rho");
+  gpeakexregion_tf->SetParName(7, "Step S");
+  gpeakexregion_tf->SetParName(8, "bg p0");
+  gpeakexregion_tf->SetParName(9, "bg p1");
+
   gpeakexregion_tf->SetParLimits(0, par[0]-2., par[0]+2.);
   gpeakexregion_tf->SetParLimits(2, 0.1, 10.);
   gpeakexregion_tf->SetParLimits(3, 0.001, 1.);
   gpeakexregion_tf->SetParLimits(4, 0.01, 10.);
   gpeakexregion_tf->SetParLimits(5, 0.001, 1.);
   gpeakexregion_tf->SetParLimits(6, 0.01, 10.);
-  gpeakexregion_tf->SetParLimits(7, 0.00001, 0.0005);
+  gpeakexregion_tf->SetParLimits(7, 0.00001, 0.05);
 
   gpeakexregion_tf->FixParameter(10, par[10]);
   gpeakexregion_tf->FixParameter(11, par[11]);
@@ -146,20 +168,20 @@ void fit_peak(TH1D *h_event, TH1D *h_bg, int ring, double e)
   h_event->Fit("gpeakexregion_tf", "R");
 
   //
-  TF1 *gstep_tf = new TF1("gstep_tf", gpeak, x_min, x_max, 7);
-  gstep_tf->SetParameter(0, gpeakexregion_tf->GetParameter(0));
-  gstep_tf->SetParameter(1, gpeakexregion_tf->GetParameter(1));
-  gstep_tf->SetParameter(2, gpeakexregion_tf->GetParameter(2));
-  gstep_tf->SetParameter(3, gpeakexregion_tf->GetParameter(3));
-  gstep_tf->SetParameter(4, gpeakexregion_tf->GetParameter(4));
-  gstep_tf->SetParameter(5, gpeakexregion_tf->GetParameter(5));
-  gstep_tf->SetParameter(6, gpeakexregion_tf->GetParameter(6));
+  TF1 *gpeak_tf = new TF1("gpeak_tf", gpeak, x_min, x_max, 7);
+  gpeak_tf->SetParameter(0, gpeakexregion_tf->GetParameter(0));
+  gpeak_tf->SetParameter(1, gpeakexregion_tf->GetParameter(1));
+  gpeak_tf->SetParameter(2, gpeakexregion_tf->GetParameter(2));
+  gpeak_tf->SetParameter(3, gpeakexregion_tf->GetParameter(3));
+  gpeak_tf->SetParameter(4, gpeakexregion_tf->GetParameter(4));
+  gpeak_tf->SetParameter(5, gpeakexregion_tf->GetParameter(5));
+  gpeak_tf->SetParameter(6, gpeakexregion_tf->GetParameter(6));
 
-  gstep_tf->SetLineColor(3);
-  gstep_tf->Draw("same");
+  gpeak_tf->SetLineColor(3);
+  gpeak_tf->Draw("same");
 
   //
-  TF1 *bgstep_tf = new TF1("bgstep_tf", bgstep, x_min, x_max, 5);
+  TF1 *bgstep_tf = new TF1("bgstep_tf", bgstep, x_min, x_max, 6);
   bgstep_tf->SetParameter(0, gpeakexregion_tf->GetParameter(8));
   bgstep_tf->SetParameter(1, gpeakexregion_tf->GetParameter(9));
   bgstep_tf->SetParameter(2, gpeakexregion_tf->GetParameter(0)); // energy
@@ -170,13 +192,13 @@ void fit_peak(TH1D *h_event, TH1D *h_bg, int ring, double e)
   bgstep_tf->Draw("same");
 
   //
-  double energy = gpeakexregion_tf->GetParameter(0); 
-  double gamma = gpeakexregion_tf->GetParameter(1);
-  double delta = gpeakexregion_tf->GetParameter(2);
-  double a = gpeakexregion_tf->GetParameter(3);
-  double beta = gpeakexregion_tf->GetParameter(4);
-  double r = gpeakexregion_tf->GetParameter(5);
-  double rho = gpeakexregion_tf->GetParameter(6);
+  double energy = gpeak_tf->GetParameter(0); 
+  double gamma = gpeak_tf->GetParameter(1);
+  double delta = gpeak_tf->GetParameter(2);
+  double a = gpeak_tf->GetParameter(3);
+  double beta = gpeak_tf->GetParameter(4);
+  double r = gpeak_tf->GetParameter(5);
+  double rho = gpeak_tf->GetParameter(6);
 
   double xll = energy-delta/sqrt(2)*2.5;
   double xrr = energy+delta/sqrt(2)*2.5;
@@ -225,10 +247,12 @@ void fit_peak(TH1D *h_event, TH1D *h_bg, int ring, double e)
   lt_result_integral->SetTextColor(kBlack);
   lt_result_integral->Draw();
 
+  f << ring << "  " << e << "  " << sum << "  " << sum_error << endl; 
+
   cc->SaveAs(Form("./fig/%s.png",cc->GetName()));
 
   delete gpeakexregion_tf;
-  delete gstep_tf;
+  delete gpeak_tf;
   delete bgstep_tf;
 }
 

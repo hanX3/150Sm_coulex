@@ -55,7 +55,7 @@ void yield_two_peaks()
     cout << "m_r_2e_info " << m_r_2e_info.size() << endl;
 
     for(auto &[key,val]:m_r_2e_info){
-      // if(!(key.first==6 && key.second==1174)) continue;
+      if(!(key.first==6 && key.second==1174)) continue;
 
       v_h_event.push_back((TH1D*)fi->Get(Form("event_e_dc_r_%s_ring%d",prefix.c_str(),key.first)));
       v_h_bg.push_back((TH1D*)fi_bg->Get(Form("bg_e_dc_r_%s_ring%d",prefix.c_str(),key.first)));

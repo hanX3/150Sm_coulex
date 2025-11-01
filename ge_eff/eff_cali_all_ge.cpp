@@ -1,6 +1,6 @@
 //
 // ge info (ring, sector)
-// (3,2) (3,3) (3,4) (3,8) (3,9) (3,10)
+// (3,2) (3,8) (3,9) (3,10)
 // (4,1) (4,2) (4,3) (4,4) (4,5) (4,6) (4,7) (4,8)
 // (5,2) (5,3) (5,4) (5,5) (5,6)
 
@@ -24,7 +24,7 @@ void get_all_ge_h();
 double eff_cali_all_ge_single_peak(TH1D *h, double energy, double l_bg, double l_peak, double u_peak, double u_bg, double ll_ex, double lr_ex, double hl_ex, double hr_ex);
 
 //
-TFile *fi = TFile::Open("../rootfile/data0722_build_ge_200ns.root");
+TFile *fi = TFile::Open("../rootfile/data0722_build_200ns_jump_300ns.root");
 TTree *tr = (TTree*)fi->Get("tr_event");
 TH1D *h = new TH1D("h", "", 4096, 0, 4096);
 
@@ -294,7 +294,7 @@ void eff_cali_all_ge()
 //
 void get_all_ge_h()
 {
-  TCut cut_ge_ring3 = "(ge_ring_id==3&&ge_sector_id==2) || (ge_ring_id==3&&ge_sector_id==3) || (ge_ring_id==3&&ge_sector_id==4) || (ge_ring_id==3&&ge_sector_id==8) || (ge_ring_id==3&&ge_sector_id==9) || (ge_ring_id==3&&ge_sector_id==10)";
+  TCut cut_ge_ring3 = "(ge_ring_id==3&&ge_sector_id==2) || (ge_ring_id==3&&ge_sector_id==8) || (ge_ring_id==3&&ge_sector_id==9) || (ge_ring_id==3&&ge_sector_id==10)";
   TCut cut_ge_ring4 = "(ge_ring_id==4&&ge_sector_id==1) || (ge_ring_id==4&&ge_sector_id==2) || (ge_ring_id==4&&ge_sector_id==3) || (ge_ring_id==4&&ge_sector_id==4) || (ge_ring_id==4&&ge_sector_id==5) || (ge_ring_id==4&&ge_sector_id==6) || (ge_ring_id==4&&ge_sector_id==7) || (ge_ring_id==4&&ge_sector_id==8)";
   TCut cut_ge_ring5 = "(ge_ring_id==5&&ge_sector_id==2) || (ge_ring_id==5&&ge_sector_id==3) || (ge_ring_id==5&&ge_sector_id==4) || (ge_ring_id==5&&ge_sector_id==5) || (ge_ring_id==5&&ge_sector_id==6)";
   

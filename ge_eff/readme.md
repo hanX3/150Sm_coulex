@@ -30,7 +30,7 @@ Efficiency calibration using 133Ba and 152Eu $\gamma$ source.
 
 ## info
 
-+ input file: data0722_build_ge_200ns.root, fit_range.txt
++ input file: data0722_build_200ns_jump_300ns.root, fit_range.txt
 + output file: terminal out of some certain peak effciency and error, some figure with fit results.
 
 ### How to run

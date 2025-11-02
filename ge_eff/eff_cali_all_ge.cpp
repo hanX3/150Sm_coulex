@@ -29,133 +29,6 @@ TTree *tr = (TTree*)fi->Get("tr_event");
 TH1D *h = new TH1D("h", "", 4096, 0, 4096);
 
 //
-std::map<double, std::pair<double, double>> m_interested_eff_err = {
-  {122, {0, 0}},
-  {298, {0, 0}},
-  {306, {0, 0}},
-  {334, {0, 0}},
-  {340, {0, 0}},
-  {403, {0, 0}},
-  {406, {0, 0}},
-  {439, {0, 0}},
-  {485, {0, 0}},
-  {506, {0, 0}},
-  {558, {0, 0}},
-  {585, {0, 0}},
-  {676, {0, 0}},
-  {712, {0, 0}},
-  {737, {0, 0}},
-  {832, {0, 0}},
-  {860, {0, 0}},
-  {869, {0, 0}},
-  {1046, {0, 0}},
-  {1166, {0, 0}},
-  {1194, {0, 0}},
-  {1350, {0, 0}}
-};
-
-//
-double eff_fun(double *x, double *p)
-{
-  double x1 = log(x[0]/100.);
-  double x2 = log(x[0]/1000.);
-
-  double z1 = pow(p[0]+p[1]*x1+p[2]*x1*x1, -p[6]);
-  double z2 = pow(p[3]+p[4]*x2+p[5]*x2*x2, -p[6]);
-
-  double eff = exp(pow(z1+z2, -1./p[6]));
-
-  return eff;
-}
-
-//
-double *eff_fit(map<double, double> &m,  map<double, double> &m_err)
-{
-  gStyle->SetOptFit(1111);
-
-  TF1 *tf = new TF1("tf", eff_fun, 50, 2048, 7);
-  
-  /*
-  tf->SetParameters(5.42, 3.73, 0., 7.03, -0.65, -0.14, 15.);
-  delete gROOT->GetListOfCanvases()->FindObject("cc");
-  TCanvas *cc = new TCanvas("cc", "", 0, 0, 480, 360);
-  cc->cd();
-  tf->Draw();
-  */
-
-  TGraphErrors *gr = new TGraphErrors();
-
-  int i = 0;
-  for(auto it=m.begin();it!=m.end();it++){
-    gr->SetPoint(i, it->first, it->second);
-    i++;
-  }
-  i = 0;
-  for(auto it=m_err.begin();it!=m_err.end();it++){
-    gr->SetPointError(i, 0, it->second);
-    cout << it->second << endl;
-    i++;
-  }
-
-  delete gROOT->GetListOfCanvases()->FindObject("cc");
-  TCanvas *cc = new TCanvas("cc", "", 0, 0, 480, 360);
-  cc->cd();
-
-  gr->GetXaxis()->SetTitle("Energy [keV]");
-  gr->GetYaxis()->SetTitle("Amplitude");
-  gr->SetMarkerColor(4);
-  gr->SetMarkerStyle(21);
-  gr->SetMarkerSize(1);
-  gr->Draw("AP");  
-
-  tf->SetParameter(0, 10.);
-  tf->SetParameter(1, 2.);
-  tf->FixParameter(2, 0.);
-  tf->SetParameter(3, 10.);
-  tf->SetParameter(4, -0.5);
-  tf->SetParameter(5, 0.1);
-  tf->FixParameter(6, 15.);
-
-  gr->Fit("tf");
-
-  //
-  double err_all = 0.;
-  i = 0;
-  for(auto it=m.begin();it!=m.end();it++){
-    err_all += (tf->Eval(it->first)-it->second)*(tf->Eval(it->first)-it->second)/tf->Eval(it->first)/tf->Eval(it->first);
-    cout << err_all << endl;
-    i++;
-  }
-  err_all /= (double)m.size();
-  cout << sqrt(err_all) << endl;
-
-  TLatex *lt = new TLatex(0.3, 0.8, Form("eff error %0.4f%%",100.*sqrt(err_all)));
-  lt->SetNDC();
-  lt->SetTextSize(0.04);
-  lt->SetTextColor(kBlack);
-  lt->Draw();
-
-  double max = tf->GetMaximum();
-  cout << "max " << max << endl;
-
-  int ii = 0;
-  for(auto& [key, value] : m_interested_eff_err){
-    value.first  = tf->Eval(key)/max;
-    value.second = tf->Eval(key)/max*sqrt(err_all);
-    ++ii;
-  }
-
-  for(auto &[key,value]:m_interested_eff_err){
-    cout << "{" << key << ", {" << value.first << ", " << value.second << "}}," << endl;
-  }
-
-  cc->Update();
-  cc->SaveAs("./fig/all_eff.png");
-
-  return tf->GetParameters();
-}
-
-//
 void eff_cali_all_ge()
 {
   //
@@ -413,6 +286,97 @@ double eff_cali_all_ge_single_peak(TH1D *h, double energy, double l_bg, double l
   return sum;
 
 }
+
+//
+double eff_fun(double *x, double *p)
+{
+  double x1 = log(x[0]/100.);
+  double x2 = log(x[0]/1000.);
+
+  double z1 = pow(p[0]+p[1]*x1+p[2]*x1*x1, -p[6]);
+  double z2 = pow(p[3]+p[4]*x2+p[5]*x2*x2, -p[6]);
+
+  double eff = exp(pow(z1+z2, -1./p[6]));
+
+  return eff;
+}
+
+//
+double *eff_fit(map<double, double> &m,  map<double, double> &m_err)
+{
+  gStyle->SetOptFit(1111);
+
+  TF1 *tf = new TF1("tf", eff_fun, 50, 2048, 7);
+  
+  /*
+  tf->SetParameters(5.42, 3.73, 0., 7.03, -0.65, -0.14, 15.);
+  delete gROOT->GetListOfCanvases()->FindObject("cc");
+  TCanvas *cc = new TCanvas("cc", "", 0, 0, 480, 360);
+  cc->cd();
+  tf->Draw();
+  */
+
+  TGraphErrors *gr = new TGraphErrors();
+
+  int i = 0;
+  for(auto it=m.begin();it!=m.end();it++){
+    gr->SetPoint(i, it->first, it->second);
+    i++;
+  }
+  i = 0;
+  for(auto it=m_err.begin();it!=m_err.end();it++){
+    gr->SetPointError(i, 0, it->second);
+    cout << it->second << endl;
+    i++;
+  }
+
+  delete gROOT->GetListOfCanvases()->FindObject("cc");
+  TCanvas *cc = new TCanvas("cc", "", 0, 0, 480, 360);
+  cc->cd();
+
+  gr->GetXaxis()->SetTitle("Energy [keV]");
+  gr->GetYaxis()->SetTitle("Amplitude");
+  gr->SetMarkerColor(4);
+  gr->SetMarkerStyle(21);
+  gr->SetMarkerSize(1);
+  gr->Draw("AP");  
+
+  tf->SetParameter(0, 10.);
+  tf->SetParameter(1, 2.);
+  tf->FixParameter(2, 0.);
+  tf->SetParameter(3, 10.);
+  tf->SetParameter(4, -0.5);
+  tf->SetParameter(5, 0.1);
+  tf->FixParameter(6, 15.);
+
+  gr->Fit("tf");
+
+  //
+  double err_all = 0.;
+  i = 0;
+  for(auto it=m.begin();it!=m.end();it++){
+    err_all += (tf->Eval(it->first)-it->second)*(tf->Eval(it->first)-it->second)/tf->Eval(it->first)/tf->Eval(it->first);
+    cout << err_all << endl;
+    i++;
+  }
+  err_all /= (double)m.size();
+  cout << sqrt(err_all) << endl;
+
+  TLatex *lt = new TLatex(0.3, 0.8, Form("eff error %0.4f%%",100.*sqrt(err_all)));
+  lt->SetNDC();
+  lt->SetTextSize(0.04);
+  lt->SetTextColor(kBlack);
+  lt->Draw();
+
+  double max = tf->GetMaximum();
+  cout << "max " << max << endl;
+
+  cc->Update();
+  cc->SaveAs("./fig/all_eff.png");
+
+  return tf->GetParameters();
+}
+
 
 // pars = 12
 // Gaussian + Left-Skew + Step + Background

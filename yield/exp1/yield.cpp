@@ -1,6 +1,7 @@
 //
 
 std::map<std::pair<int,int>, std::vector<double>> m_r_e_info;
+std::map<std::pair<int,int>, bool> m_r_e_flag;
 TFile *fi = TFile::Open("../../rootfile/doppler_100ns_p1_no_bg_hist.root");
 TFile *fi_bg = TFile::Open("../../rootfile/doppler_100ns_p1_hist.root");
 
@@ -58,7 +59,7 @@ void yield()
     fo << "ring_id   e   area   error" << endl;
 
     for(auto &[key,val]:m_r_e_info){
-      // if(!(key.first==7 && key.second==505)) continue;
+      if(!(key.first==7 && key.second==505)) continue;
 
       v_h_event.push_back((TH1D*)fi->Get(Form("event_e_dc_r_%s_ring%d",prefix.c_str(),key.first)));
       v_h_bg.push_back((TH1D*)fi_bg->Get(Form("bg_e_dc_r_%s_ring%d",prefix.c_str(),key.first)));
@@ -247,7 +248,21 @@ void fit_peak(ofstream &f, TH1D *h_event, TH1D *h_bg, int ring, double e)
   lt_result_integral->SetTextColor(kBlack);
   lt_result_integral->Draw();
 
-  f << ring << "  " << e << "  " << sum << "  " << sum_error << endl; 
+  if(m_r_e_flag[std::make_pair(ring, (int)e)]){
+    f << ring << "  " << e << "  " << sum << "  " << sum_error << endl; 
+
+    TLatex *lt_good = new TLatex(0.05, 0.92, "Good");
+    lt_good->SetNDC();
+    lt_good->SetTextSize(0.09);
+    lt_good->SetTextColor(kRed);
+    lt_good->Draw();
+  }else{
+    TLatex *lt_bad = new TLatex(0.05, 0.92, "Bad");
+    lt_bad->SetNDC();
+    lt_bad->SetTextSize(0.09);
+    lt_bad->SetTextColor(kBlue);
+    lt_bad->Draw();
+  }
 
   cc->SaveAs(Form("./fig/%s.png",cc->GetName()));
 
@@ -266,14 +281,17 @@ bool init_pars(string str="")
     return 0;
   }
   m_r_e_info.clear();
+  m_r_e_flag.clear();
 
   std::string line;
   std::getline(fi_fit_sp_par, line);
   
   int ring;
   double e,x_min,x_max,ex_x1,ex_x2,ex_x3,ex_x4,delta,a,beta,r,rho,s;
-  while(fi_fit_sp_par>>ring>>e>>x_min>>x_max>>ex_x1>>ex_x2>>ex_x3>>ex_x4>>delta>>a>>beta>>r>>rho>>s){
+  bool flag;
+  while(fi_fit_sp_par>>ring>>e>>x_min>>x_max>>ex_x1>>ex_x2>>ex_x3>>ex_x4>>delta>>a>>beta>>r>>rho>>s>>flag){
     m_r_e_info.insert({{ring,(int)e}, {e,x_min,x_max,ex_x1,ex_x2,ex_x3,ex_x4,delta,a,beta,r,rho,s}});
+    m_r_e_flag.insert({{ring,(int)e}, flag});
   }
   fi_fit_sp_par.close();
   
@@ -283,6 +301,10 @@ bool init_pars(string str="")
     cout << val[3] << ", " << val[4] << "]; [" << val[5] << ", " << val[6] << "]} " << endl;
     cout << "delta=" << val[7] << " a=" << val[8] << "  beta=" << val[9] << "  r=" << val[10] << "  rho=" << val[11] << endl;
     cout << "s=" << val[12] << endl;
+  }
+  for(auto &[key,val]:m_r_e_flag){
+    cout << "ring " << key.first << " ==> " << key.second << endl;
+    cout << "flag=" << val << endl;
   }
 
   return 1;

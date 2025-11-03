@@ -1,11 +1,12 @@
 //
 
 std::map<std::pair<int,int>, std::vector<double>> m_r_2e_info;
+std::map<std::pair<int,int>, bool> m_r_e_flag;
 TFile *fi = TFile::Open("../../rootfile/doppler_100ns_p1_no_bg_hist.root");
 TFile *fi_bg = TFile::Open("../../rootfile/doppler_100ns_p1_hist.root");
 
 bool init_pars(string str="");
-void fit_two_peaks(TH1D *h_event, TH1D *h_bg, int ring, double e1, double e2);
+void fit_two_peaks(ofstream &f, TH1D *h_event, TH1D *h_bg, int ring, double e1, double e2);
 
 //ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
 //
@@ -54,16 +55,20 @@ void yield_two_peaks()
     if(!init_pars(prefix)) return;
     cout << "m_r_2e_info " << m_r_2e_info.size() << endl;
 
+    ofstream fo(Form("./result/%s_two_peaks.yld",prefix.c_str()));
+    fo << "ring_id   e   area   error" << endl;
+
     for(auto &[key,val]:m_r_2e_info){
       if(!(key.first==6 && key.second==1174)) continue;
 
       v_h_event.push_back((TH1D*)fi->Get(Form("event_e_dc_r_%s_ring%d",prefix.c_str(),key.first)));
       v_h_bg.push_back((TH1D*)fi_bg->Get(Form("bg_e_dc_r_%s_ring%d",prefix.c_str(),key.first)));
 
-      fit_two_peaks(v_h_event[k], v_h_bg[k], key.first, val[0], val[1]);
+      fit_two_peaks(fo, v_h_event[k], v_h_bg[k], key.first, val[0], val[1]);
 
       k++;
     }
+    fo.close();
   }
 
    // v_h_event.clear();
@@ -74,7 +79,7 @@ void yield_two_peaks()
 }
 
 //
-void fit_two_peaks(TH1D *h_event, TH1D *h_bg, int ring, double e1, double e2)
+void fit_two_peaks(ofstream &f, TH1D *h_event, TH1D *h_bg, int ring, double e1, double e2)
 {
   // gROOT->SetBatch(1);
   gStyle->SetOptStat(0);
@@ -335,6 +340,24 @@ void fit_two_peaks(TH1D *h_event, TH1D *h_bg, int ring, double e1, double e2)
   lt_e2->SetTextColor(kBlack);
   lt_e2->Draw();
 
+
+  if(m_r_e_flag[std::make_pair(ring, (int)e)]){
+    f << ring << "  " << e1 << "  " << sum1 << "  " << sum1_error << endl;  
+    f << ring << "  " << e2 << "  " << sum2 << "  " << sum2_error << endl;  
+
+    TLatex *lt_good = new TLatex(0.05, 0.92, "Good");
+    lt_good->SetNDC();
+    lt_good->SetTextSize(0.09);
+    lt_good->SetTextColor(kRed);
+    lt_good->Draw();
+  }else{
+    TLatex *lt_bad = new TLatex(0.05, 0.92, "Bad");
+    lt_bad->SetNDC();
+    lt_bad->SetTextSize(0.09);
+    lt_bad->SetTextColor(kBlue);
+    lt_bad->Draw();
+  }
+
   cc->SaveAs(Form("./fig/%s.png",cc->GetName()));
 
   // delete g2peakexregion_tf;
@@ -354,14 +377,17 @@ bool init_pars(string str="")
     return 0;
   }
   m_r_2e_info.clear();
+  m_r_e_flag.clear();
 
   std::string line;
   std::getline(fi_fit_sp_par, line);
   
   int ring;
   double e1,e2,x_min,x_max,ex_x1,ex_x2,ex_x3,ex_x4,delta1,a1,beta1,r1,rho1,s1,delta2,a2,beta2,r2,rho2,s2;
-  while(fi_fit_sp_par>>ring>>e1>>e2>>x_min>>x_max>>ex_x1>>ex_x2>>ex_x3>>ex_x4>>delta1>>a1>>beta1>>r1>>rho1>>s1>>delta2>>a2>>beta2>>r2>>rho2>>s2){
+  bool flag;
+  while(fi_fit_sp_par>>ring>>e1>>e2>>x_min>>x_max>>ex_x1>>ex_x2>>ex_x3>>ex_x4>>delta1>>a1>>beta1>>r1>>rho1>>s1>>delta2>>a2>>beta2>>r2>>rho2>>s2>>flag){
     m_r_2e_info.insert({{ring,(int)(e1+e2)}, {e1,e2,x_min,x_max,ex_x1,ex_x2,ex_x3,ex_x4,delta1,a1,beta1,r1,rho1,s1,delta2,a2,beta2,r2,rho2,s2}});
+    m_r_e_flag.insert({{ring,(int)(e1+e2)}, flag});
   }
   fi_fit_sp_par.close();
   
@@ -371,6 +397,11 @@ bool init_pars(string str="")
     cout << val[4] << ", " << val[5] << "]; [" << val[6] << ", " << val[7] << "]} " << endl;
     cout << "delta1=" << val[8] << " a1=" << val[9] << "  beta1=" << val[10] << "  r1=" << val[11] << "  rho1=" << val[12] << "  s1=" << val[13] << endl;
     cout << "delta2=" << val[14] << " a2=" << val[15] << "  beta2=" << val[16] << "  r2=" << val[17] << "  rho2=" << val[18] << "  s2=" << val[19] << endl;
+  }
+
+  for(auto &[key,val]:m_r_e_flag){
+    cout << "ring " << key.first << " ==> " << key.second << endl;
+    cout << "flag=" << val << endl;
   }
 
   return 1;

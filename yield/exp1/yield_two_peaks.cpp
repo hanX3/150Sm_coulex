@@ -3,7 +3,6 @@
 std::map<std::pair<int,int>, std::vector<double>> m_r_2e_info;
 std::map<std::pair<int,int>, bool> m_r_e_flag;
 TFile *fi = TFile::Open("../../rootfile/doppler_100ns_p1_no_bg_hist.root");
-TFile *fi_bg = TFile::Open("../../rootfile/doppler_100ns_p1_hist.root");
 
 bool init_pars(string str="");
 void fit_two_peaks(ofstream &f, TH1D *h_event, TH1D *h_bg, int ring, double e1, double e2);
@@ -62,7 +61,7 @@ void yield_two_peaks()
       if(!(key.first==6 && key.second==1174)) continue;
 
       v_h_event.push_back((TH1D*)fi->Get(Form("event_e_dc_r_%s_ring%d",prefix.c_str(),key.first)));
-      v_h_bg.push_back((TH1D*)fi_bg->Get(Form("bg_e_dc_r_%s_ring%d",prefix.c_str(),key.first)));
+      v_h_bg.push_back((TH1D*)fi->Get(Form("bg_e_dc_r_%s_ring%d",prefix.c_str(),key.first)));
 
       fit_two_peaks(fo, v_h_event[k], v_h_bg[k], key.first, val[0], val[1]);
 
@@ -75,7 +74,6 @@ void yield_two_peaks()
    // v_h_bg.clear();
 
    // fi->Close();
-   // fi_bg->Close();
 }
 
 //

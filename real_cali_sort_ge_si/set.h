@@ -8,7 +8,7 @@ constexpr int S3RINGNUM = 24;
 
 constexpr double CUTGE = 20.;//keV
 
-#define TW
+// #define TW
 constexpr const char TF[] = "tf2";
 
 constexpr long long TIMEBUFFER = 1000000000; //ns

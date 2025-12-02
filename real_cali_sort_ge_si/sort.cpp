@@ -37,12 +37,12 @@ sort::sort(const std::string &filename_in, const std::string &filename_out, cons
   if(!ReadCaliData()){
     throw std::invalid_argument("can not read cali data.");
   }
-  //PrintCaliData();
+  PrintCaliData();
   
   if(!ReadS3AttData()){
     throw std::invalid_argument("can not read ts s3 att data.");
   }
-  //PrintS3AttData();
+  PrintS3AttData();
 
   if(!ReadS3CorData()){
     throw std::invalid_argument("can not read ts s3 cor data.");
@@ -53,13 +53,13 @@ sort::sort(const std::string &filename_in, const std::string &filename_out, cons
   if(!ReadTSOffset()){
     throw std::invalid_argument("can not read ts offset data.");
   }
-  //PrintTSOffset();
+  PrintTSOffset();
 
   // read ge time walk
   if(!ReadGeTwData()){
     throw std::invalid_argument("can not read ge time walk data.");
   }
-  //PrintGeTwData();
+  PrintGeTwData();
 
   rndm = new TRandom3((Long64_t)time(0));
   
@@ -205,7 +205,7 @@ void sort::GetEnergy()
         sd.evte *= 4.;
       } 
     }
-    if((run>=616&&run<=674)){
+    if((run>=616&&run<=674) || (run>=721 && run<=723)){
       if(rd->sid==9){
         sd.evte *= 4.;
       } 
@@ -355,6 +355,13 @@ bool sort::ReadS3CorData()
   int id;
   double par0, par1;
 
+  if(run>=721 && run<=723){
+    for(int i=1;i<=32;i++) map_s3_sector_cor[i] = {0, 1.};
+    for(int i=1;i<=24;i++) map_s3_ring_cor[i] = {0, 1.};
+
+    return 1;
+  }
+
   std::string line;
 
   std::ifstream fi_fb_cor_sector(TString::Format("../pars/run_fb_cor/correction_sector_%04d.txt",run).Data());
@@ -417,6 +424,13 @@ bool sort::ReadS3AttData()
   double par;
 
   bool flag = 0;
+
+  if(run>=721 && run<=723){
+    for(int i=1;i<=32;i++) map_s3_sector_att[i] = 1.;
+    for(int i=1;i<=24;i++) map_s3_ring_att[i] = 1.;
+
+    return 1;
+  }
 
   std::ifstream fi_sector;
   for(int i=0;i<32;i++){

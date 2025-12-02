@@ -458,6 +458,21 @@ void build::GetGeSpiderS3EventPrompt()
     }
 
     //
+    if(run>=721 && run<=723){
+      if(n_ge){
+        n_evt++;
+
+        file_out->cd();
+        tr->Fill();
+
+        if(n_evt%10000==0){
+          std::cout << "\r" << n_evt << "  " << i << "/" << tr_in->GetEntries();
+          std::cout << std::flush;
+        }
+      }
+    }
+
+    //
     if(n_ge*(n_spider+n_s3_sector*n_s3_ring) > 0){
       n_evt++;
 
@@ -900,6 +915,22 @@ void build::GetGeSpiderS3EventRandom()
       n_s3_sector = 0;
       n_s3_ring = 0;
     }
+
+    //
+    if(run>=721 && run<=723){
+      if(n_ge){
+        n_evt++;
+
+        file_out->cd();
+        tr->Fill();
+
+        if(n_evt%10000==0){
+          std::cout << "\r" << n_evt << "  " << i << "/" << tr_in->GetEntries();
+          std::cout << std::flush;
+        }
+      }
+    }
+
 
     //
     if(n_ge*(n_spider+n_s3_sector*n_s3_ring) > 0){

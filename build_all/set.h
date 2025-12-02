@@ -11,7 +11,6 @@ constexpr double CutSpiderEnergy = 2500.; // keV
 constexpr double CutS3Energy = 2500.; // keV
 constexpr double CutS3FBDiff = 2500.; // keV
 
-
 //#define TW
 
 #endif

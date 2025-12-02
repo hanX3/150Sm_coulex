@@ -1,11 +1,11 @@
 #!/usr/bin/bash
 
-max_jobs=60
+max_jobs=120
 
 mkdir -p terminal_cout
 
 while read run; do
-  ./build $run 200 300 &
+  ./build $run 250 300 &
 
   while (( $(jobs -p | wc -l) >= $max_jobs )); do
     wait -n

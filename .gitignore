@@ -9,6 +9,8 @@ decode*
 build
 sort
 analysis
+terminal_cout/
+try/
 
 *.root
 *.txt

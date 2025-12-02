@@ -6,11 +6,11 @@ if [ $# -ne 1 ]; then
 fi
 
 # p1
-rm -f ../../rootfile/data0616_0674_doppler_${1}ns_jump_300ns_hist.root 
-hadd ../../rootfile/data0616_0674_doppler_${1}ns_jump_300ns_hist.root ../../rootfile/data061[6-9]_doppler_${1}ns_jump_300ns_hist.root ../../rootfile/data06[2-6]?_doppler_${1}ns_jump_300ns_hist.root ../../rootfile/data067[1-4]_doppler_${1}ns_jump_300ns_hist.root
+#rm -f ../../rootfile/data0616_0674_doppler_${1}ns_jump_300ns_hist.root 
+#hadd ../../rootfile/data0616_0674_doppler_${1}ns_jump_300ns_hist.root ../../rootfile/data061[6-9]_doppler_${1}ns_jump_300ns_hist.root ../../rootfile/data06[2-6]?_doppler_${1}ns_jump_300ns_hist.root ../../rootfile/data067[1-4]_doppler_${1}ns_jump_300ns_hist.root
 
-rm -f ../../rootfile/doppler_${1}ns_p1_hist.root
-mv ../../rootfile/data0616_0674_doppler_${1}ns_jump_300ns_hist.root ../../rootfile/doppler_${1}ns_p1_hist.root
+#rm -f ../../rootfile/doppler_${1}ns_p1_hist.root
+#mv ../../rootfile/data0616_0674_doppler_${1}ns_jump_300ns_hist.root ../../rootfile/doppler_${1}ns_p1_hist.root
 
 # p2
 rm -f ../../rootfile/data0472_0549_doppler_${1}ns_jump_300ns_hist.root 

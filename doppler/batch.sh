@@ -5,7 +5,7 @@ max_jobs=60
 mkdir -p terminal_cout
 
 while read run; do
-  ./doppler $run 200 300 &
+  ./doppler $run 100 300 &
   
   while (( $(jobs -p | wc -l) >= $max_jobs )); do
     wait -n

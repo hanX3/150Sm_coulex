@@ -55,7 +55,7 @@ void get_theta_eloss_r()
     theta_r = tf_cor->Eval(theta_p);
 
     e_in = tf_r->Eval(theta_r);
-    cmd = TString::Format("elast -Qa %f o \"1(150Sm)\" %f 150Sm %f", theta_r, 0.6, e_in);
+    cmd = TString::Format("elast -Qa %f o \"1(150Sm)\" %f 150Sm %f", theta_r, 1.2, e_in);
     pipe = popen(cmd.Data(), "r");
     char buffer[128];
     fgets(buffer, sizeof(buffer), pipe);
@@ -70,7 +70,7 @@ void get_theta_eloss_r()
     theta_r = tf_cor->Eval(theta_p);
 
     e_in = tf_r->Eval(theta_r);
-    cmd = TString::Format("elast -Qa %f o \"1(150Sm)\" %f 150Sm %f", theta_r, 0.6, e_in);
+    cmd = TString::Format("elast -Qa %f o \"1(150Sm)\" %f 150Sm %f", theta_r, 1.2, e_in);
     pipe = popen(cmd.Data(), "r");
     char buffer[128];
     fgets(buffer, sizeof(buffer), pipe);

@@ -40,7 +40,7 @@ void get_theta_eloss_p()
     fi_spider >> theta;
     if(!fi_spider.good()) break;
     e_in = tf_p->Eval(theta);
-    cmd = TString::Format("elast -Qa %f o \"1(150Sm)\" %f 32S %f", theta, 0.6, e_in);
+    cmd = TString::Format("elast -Qa %f o \"1(150Sm)\" %f 32S %f", theta, 1.2, e_in);
     pipe = popen(cmd.Data(), "r");
     char buffer[128];
     fgets(buffer, sizeof(buffer), pipe);
@@ -53,7 +53,7 @@ void get_theta_eloss_p()
     fi_s3 >> theta;
     if(!fi_s3.good()) break;
     e_in = tf_p->Eval(theta);
-    cmd = TString::Format("elast -Qa %f o \"1(150Sm)\" %f 32S %f", theta, 0.6, e_in);
+    cmd = TString::Format("elast -Qa %f o \"1(150Sm)\" %f 32S %f", theta, 1.2, e_in);
     pipe = popen(cmd.Data(), "r");
     char buffer[128];
     fgets(buffer, sizeof(buffer), pipe);

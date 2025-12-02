@@ -677,7 +677,6 @@ bool build::ReadS3AttData()
     return 0;
   }
 
-
   return 1;
 }
 

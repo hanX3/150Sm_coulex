@@ -26,10 +26,6 @@ public:
   void GetS3FrontBackDataPrompt();
   void SaveFile();
 
-public:
-  void AnaRing2Sector1();
-  void AnaRing1Sector2();
-
 private:
   std::map<int, std::vector<double>> map_cali;
   std::map<int, std::vector<double>> map_s3_sector_cor, map_s3_ring_cor; // key is id 

@@ -8,9 +8,11 @@ out/
 decode*
 build
 sort
+doppler
 analysis
 terminal_cout/
 try/
+result/
 
 *.root
 *.txt

@@ -1,10 +1,36 @@
+#define E_DC_R
+#define E_RAW
+
 // event-bg hist
 // example str = "doppler_100ns_p1", "doppler_100ns_p1_no_bg"
 void get_rebin_hist(string str="")
 {
   gROOT->SetBatch(1);
   gStyle->SetOptStat(0);
-  
+
+  // spider
+  std::vector<int> spider_rings;
+  if(str.find("p1") != std::string::npos){
+    spider_rings = {1, 3, 5, 7};
+  }else if(str.find("p2") != std::string::npos){
+    spider_rings = {1, 2, 3, 4, 5, 6, 7, 8};
+  }else{
+    cout << "wrong str" << endl;
+    return;
+  }
+
+  // s3
+  std::vector<int> s3_rings;
+  if(str.find("p1") != std::string::npos){
+    s3_rings = {1, 5, 9, 13, 17, 21};
+  }else if(str.find("p2") != std::string::npos){
+    s3_rings = {1, 3, 5, 7};
+  }else{
+    cout << "wrong str" << endl;
+    return;
+  }
+
+  //
   double x_min = 0;
   double x_max = 4096;
   int r, s;
@@ -26,18 +52,19 @@ void get_rebin_hist(string str="")
   fi_ge_good.close();
 
   //
-  TFile *fi = TFile::Open(Form("../../rootfile/%s_hist.root",str.c_str()));
+  TFile *fi = TFile::Open(Form("../../rootfile/doppler_%s_hist.root",str.c_str()));
   if(fi->IsZombie()){
     cout << "cannot open the file." << std::endl;
     return;
   }
-  TFile *fo = new TFile(Form("../../rootfile/%s_hist_rb.root",str.c_str()), "recreate");
+  TFile *fo = new TFile(Form("../../rootfile/doppler_%s_hist_rb.root",str.c_str()), "recreate");
   fo->cd();
 
+#ifdef E_DC_R
   ////
   ////
-  ////
-  // ge all spider ring
+  //// e_dc_r
+  // ge all, spider ring
   TH1D *h1_ga_spr[8];
   TH1D *hh1_ga_spr[8];
   k = 0;
@@ -45,32 +72,26 @@ void get_rebin_hist(string str="")
     h1_ga_spr[k] = (TH1D*)fi->Get(Form("event_e_dc_r_ge_all_spider_ring%d",i));
     hh1_ga_spr[k] = (TH1D*)fi->Get(Form("bg_e_dc_r_ge_all_spider_ring%d",i));
 
-    h1_ga_spr[k]->Write();
-    hh1_ga_spr[k]->Write();
-
     k++;
   }
 
-  // ge ring spider ring
-  TH1D *h1_gr_spr[3*8];
-  TH1D *hh1_gr_spr[3*8];
-  k = 0;
-  for(int i=3;i<=5;i++){
-    for(int j=1;j<=8;j++){//k=0-7 ge_ring=3
-      h1_gr_spr[k] = (TH1D*)fi->Get(Form("event_e_dc_r_ge_ring%d_spider_ring%d",i,j));
-      hh1_gr_spr[k] = (TH1D*)fi->Get(Form("bg_e_dc_r_ge_ring%d_spider_ring%d",i,j));
-
-      h1_gr_spr[k]->Write();
-      hh1_gr_spr[k]->Write();
-      
-      k++;
+  int nn = (int)(spider_rings[1]-spider_rings[0]);
+  cout << str << " spider rebin ring " << nn << endl;
+  for(int i=0;i<8;i++){
+    if(i%nn==0){
+      for(int j=1;j<nn;j++){
+        h1_ga_spr[i]->Add(h1_ga_spr[i+j]);
+        hh1_ga_spr[i]->Add(hh1_ga_spr[i+j]);
+      }
     }
   }
 
-  ////
-  ////
-  ////
-  // ge all s3 ring
+  for(int i=0;i<(int)spider_rings.size();i++){
+    h1_ga_spr[spider_rings[i]-1]->Write();
+    hh1_ga_spr[spider_rings[i]-1]->Write();
+  }
+  
+  // ge all, s3 ring
   TH1D *h1_ga_s3r[24];
   TH1D *hh1_ga_s3r[24];
   k = 0;
@@ -80,44 +101,29 @@ void get_rebin_hist(string str="")
 
     k++;
   }
-  for(int i=0;i<8;i++){
-    h1_ga_s3r[3*i]->Add(h1_ga_s3r[3*i+1], 1);
-    h1_ga_s3r[3*i]->Add(h1_ga_s3r[3*i+2], 1);
-    h1_ga_s3r[3*i]->Write();
+  
+  nn = (int)(s3_rings[1]-s3_rings[0]);
+  cout << str << " s3 rebin ring " << nn << endl;
 
-    hh1_ga_s3r[3*i]->Add(hh1_ga_s3r[3*i+1], 1);
-    hh1_ga_s3r[3*i]->Add(hh1_ga_s3r[3*i+2], 1);
-    hh1_ga_s3r[3*i]->Write();
+  for(int i=0;i<24;i++){
+    if(i%nn==0){
+      for(int j=1;j<nn;j++){
+        h1_ga_s3r[i]->Add(h1_ga_s3r[i+j]);
+        hh1_ga_s3r[i]->Add(hh1_ga_s3r[i+j]);
+      }
+    }  
   }
 
-  // ge ring s3 ring
-  TH1D *h1_gr_s3r[3*24];
-  TH1D *hh1_gr_s3r[3*24];
-  k = 0;
-  for(int i=3;i<=5;i++){
-    for(int j=1;j<=24;j++){//k=0-7 ge_ring=3
-      h1_gr_s3r[k] = (TH1D*)fi->Get(Form("event_e_dc_r_ge_ring%d_s3_ring%d",i,j));
-      hh1_gr_s3r[k] = (TH1D*)fi->Get(Form("bg_e_dc_r_ge_ring%d_s3_ring%d",i,j));
-
-      k++;
-    }
+  for(int i=0;i<(int)s3_rings.size();i++){
+    h1_ga_s3r[s3_rings[i]-1]->Write();
+    hh1_ga_s3r[s3_rings[i]-1]->Write();
   }
-  for(int i=3;i<=5;i++){
-    for(int j=0;j<8;j++){
-      h1_gr_s3r[24*(i-3)+3*j]->Add(h1_gr_s3r[24*(i-3)+3*j+1], 1);
-      h1_gr_s3r[24*(i-3)+3*j]->Add(h1_gr_s3r[24*(i-3)+3*j+1], 1);
-      h1_gr_s3r[24*(i-3)+3*j]->Write();
+#endif
 
-      hh1_gr_s3r[24*(i-3)+3*j]->Add(hh1_gr_s3r[24*(i-3)+3*j+1], 1);
-      hh1_gr_s3r[24*(i-3)+3*j]->Add(hh1_gr_s3r[24*(i-3)+3*j+1], 1);
-      hh1_gr_s3r[24*(i-3)+3*j]->Write();
-    }
-  }
-
+#ifdef E_RAW
   ////
-  ////
-  ////
-  // ge all spider ring
+  //// e_raw
+  // ge all, spider ring
   TH1D *h2_ga_spr[8];
   TH1D *hh2_ga_spr[8];
   k = 0;
@@ -125,32 +131,26 @@ void get_rebin_hist(string str="")
     h2_ga_spr[k] = (TH1D*)fi->Get(Form("event_e_raw_ge_all_spider_ring%d",i));
     hh2_ga_spr[k] = (TH1D*)fi->Get(Form("bg_e_raw_ge_all_spider_ring%d",i));
 
-    h2_ga_spr[k]->Write();
-    hh2_ga_spr[k]->Write();
-
     k++;
   }
 
-  // ge ring spider ring
-  TH1D *h2_gr_spr[3*8];
-  TH1D *hh2_gr_spr[3*8];
-  k = 0;
-  for(int i=3;i<=5;i++){
-    for(int j=1;j<=8;j++){//k=0-7 ge_ring=3
-      h2_gr_spr[k] = (TH1D*)fi->Get(Form("event_e_raw_ge_ring%d_spider_ring%d",i,j));
-      hh2_gr_spr[k] = (TH1D*)fi->Get(Form("bg_e_raw_ge_ring%d_spider_ring%d",i,j));
-
-      h2_gr_spr[k]->Write();
-      hh2_gr_spr[k]->Write();
-      
-      k++;
+  nn = (int)(spider_rings[1]-spider_rings[0]);
+  cout << str << " spider rebin ring " << nn << endl;
+  for(int i=0;i<8;i++){
+    if(i%nn==0){
+      for(int j=1;j<nn;j++){
+        h2_ga_spr[i]->Add(h2_ga_spr[i+j]);
+        hh2_ga_spr[i]->Add(hh2_ga_spr[i+j]);
+      }
     }
   }
 
-  ////
-  ////
-  ////
-  // ge all s3 ring
+  for(int i=0;i<(int)spider_rings.size();i++){
+    h2_ga_spr[spider_rings[i]-1]->Write();
+    hh2_ga_spr[spider_rings[i]-1]->Write();
+  }
+  
+  // ge all, s3 ring
   TH1D *h2_ga_s3r[24];
   TH1D *hh2_ga_s3r[24];
   k = 0;
@@ -160,39 +160,24 @@ void get_rebin_hist(string str="")
 
     k++;
   }
-  for(int i=0;i<8;i++){
-    h2_ga_s3r[3*i]->Add(h2_ga_s3r[3*i+1], 1);
-    h2_ga_s3r[3*i]->Add(h2_ga_s3r[3*i+2], 1);
-    h2_ga_s3r[3*i]->Write();
+  
+  nn = (int)(s3_rings[1]-s3_rings[0]);
+  cout << str << " s3 rebin ring " << nn << endl;
 
-    hh2_ga_s3r[3*i]->Add(hh2_ga_s3r[3*i+1], 1);
-    hh2_ga_s3r[3*i]->Add(hh2_ga_s3r[3*i+2], 1);
-    hh2_ga_s3r[3*i]->Write();
+  for(int i=0;i<24;i++){
+    if(i%nn==0){
+      for(int j=1;j<nn;j++){
+        h2_ga_s3r[i]->Add(h2_ga_s3r[i+j]);
+        hh2_ga_s3r[i]->Add(hh2_ga_s3r[i+j]);
+      }
+    }  
   }
 
-  // ge ring s3 ring
-  TH1D *h2_gr_s3r[3*24];
-  TH1D *hh2_gr_s3r[3*24];
-  k = 0;
-  for(int i=3;i<=5;i++){
-    for(int j=1;j<=24;j++){//k=0-7 ge_ring=3
-      h2_gr_s3r[k] = (TH1D*)fi->Get(Form("event_e_raw_ge_ring%d_s3_ring%d",i,j));
-      hh2_gr_s3r[k] = (TH1D*)fi->Get(Form("bg_e_raw_ge_ring%d_s3_ring%d",i,j));
-
-      k++;
-    }
+  for(int i=0;i<(int)s3_rings.size();i++){
+    h2_ga_s3r[s3_rings[i]-1]->Write();
+    hh2_ga_s3r[s3_rings[i]-1]->Write();
   }
-  for(int i=3;i<=5;i++){
-    for(int j=0;j<8;j++){
-      h2_gr_s3r[24*(i-3)+3*j]->Add(h2_gr_s3r[24*(i-3)+3*j+1], 1);
-      h2_gr_s3r[24*(i-3)+3*j]->Add(h2_gr_s3r[24*(i-3)+3*j+1], 1);
-      h2_gr_s3r[24*(i-3)+3*j]->Write();
-
-      hh2_gr_s3r[24*(i-3)+3*j]->Add(hh2_gr_s3r[24*(i-3)+3*j+1], 1);
-      hh2_gr_s3r[24*(i-3)+3*j]->Add(hh2_gr_s3r[24*(i-3)+3*j+1], 1);
-      hh2_gr_s3r[24*(i-3)+3*j]->Write();
-    }
-  }
+#endif
 
   fi->Close();
   fo->Close();

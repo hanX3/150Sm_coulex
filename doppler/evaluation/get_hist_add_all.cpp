@@ -61,10 +61,20 @@ void get_hist_add_all(string str="")
   ////
   ////
   // ge all s3 ring
-  TH1D *h1_ga_s3r[24];
+  // exp1(p1): s3 use rings 1..24 ; exp2(p2): s3 use only rings 1..8
+  int n_s3 = 24;
+  if(str.find("p2") != string::npos)      n_s3 = 8;
+  else if(str.find("p1") != string::npos) n_s3 = 24;
+  else{
+    cout << "warning: str has neither p1 nor p2, s3 defaults to " << n_s3
+         << " rings: " << str << endl;
+  }
+  cout << "[get_hist_add_all] str=" << str << "  ->  s3 rings = 1.." << n_s3 << endl;
+
+  TH1D *h1_ga_s3r[24];   // keep array size 24 (large enough)
   TH1D *hh1_ga_s3r[24];
   k = 0;
-  for(int i=1;i<=24;i++){
+  for(int i=1;i<=n_s3;i++){
     h1_ga_s3r[k] = (TH1D*)fi->Get(Form("event_e_dc_r_ge_all_s3_ring%d",i));
     hh1_ga_s3r[k] = (TH1D*)fi->Get(Form("bg_e_dc_r_ge_all_s3_ring%d",i));
 
@@ -73,7 +83,7 @@ void get_hist_add_all(string str="")
 
   TH1D *h1_ga_s3a = (TH1D*)h1_ga_s3r[0]->Clone("event_e_dc_r_ge_all_s3_all");
   TH1D *hh1_ga_s3a = (TH1D*)hh1_ga_s3r[0]->Clone("bg_e_dc_r_ge_all_s3_all");
-  for(int i=1;i<24;i++){
+  for(int i=1;i<n_s3;i++){
     h1_ga_s3a->Add(h1_ga_s3r[i], 1);
     hh1_ga_s3a->Add(hh1_ga_s3r[i], 1);
   }
